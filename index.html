@@ -1,0 +1,1035 @@
+<!doctype html>
+<meta charset="utf-8">
+<style>
+body {
+  overflow-x: hidden;
+}
+.scroll-down {
+  width: 80px;
+  height: 40px;
+  right: 10px;
+  bottom: 10px;
+  position: absolute;
+  font-family: "Roboto","Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 12px;
+  font-weight: 300;
+  color: #FFFFFF;
+  opacity: 0;
+  -webkit-transition: opacity 2s ease-in;
+  -moz-transition: opacity 2s ease-in;
+  -o-transition: opacity 2s ease-in;
+  -ms-transition: opacity 2s ease-in;
+  transition: opacity 2s ease-in;
+}
+.scroll-down span {
+  margin-top: 5px;
+  position: absolute;
+  left: 50%;
+  transform: translate(-100%, 0) rotate(45deg);
+  transform-origin: 100% 100%;
+  height: 2px;
+  width: 10px;
+  background: #FFFFFF;
+}
+.scroll-down span:nth-of-type(2) {
+  transform-origin: 0 100%;
+  transform: translate(0, 0) rotate(-45deg);
+}
+.spinner {
+  position: absolute;
+  height: 160px;
+  width: 160px;
+  -webkit-animation: rotation .6s infinite linear;
+  -moz-animation: rotation .6s infinite linear;
+  -o-animation: rotation .6s infinite linear;
+  animation: rotation .6s infinite linear;
+  border-left: 6px solid rgba(0, 174, 239, .15);
+  border-right: 6px solid rgba(0, 174, 239, .15);
+  border-bottom: 6px solid rgba(0, 174, 239, .15);
+  border-top: 6px solid rgba(0, 174, 239, .8);
+  border-radius: 100%;
+  top: calc(50% - 100px);
+  left: calc(50% - 80px);
+  right: auto;
+  bottom: auto;
+}
+
+@-webkit-keyframes rotation {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(359deg);
+  }
+}
+.transparent {
+  opacity: 0;
+}
+
+figcaption {
+  padding: 0.5em;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 12px;
+  line-height: 1.5em;
+  text-align: left;
+}
+
+dt-article figcaption {
+  padding: 0.5em;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 12px;
+  line-height: 1.5em;
+  text-align: left;
+}
+
+dt-article figcaption a {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+dt-article figcaption b {
+  font-weight: 600;
+  color: rgba(0, 0, 0, 1.0);
+}
+
+*.unselectable {
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+*.svgunselectable {
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+    background: none;
+    pointer-events: none;
+}
+</style>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <!-- roboto font -->
+  <link href='https://fonts.googleapis.com/css?family=Roboto:300' rel='stylesheet' type='text/css'>
+
+  <meta name="theme-color" content="#ffffff" />
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-133908598-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-133908598-1');
+  </script>
+
+  <!-- SEO -->
+
+  <meta property="og:title" content="Learning Latent Dynamics for Planning from Pixels" />
+  <meta property="og:type" content="article" />
+  <meta property="og:description" content="PlaNet solves control tasks from pixels by planning in latent space." />
+  <meta property="og:image" content="https://planetrl.github.io/assets/img/planet_logo_rect.jpeg" />
+  <meta property="og:url" content="https://planetrl.github.io/" />
+  <!-- Twitter Card data -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="RL for Improving Agent Design" />
+  <meta name="twitter:description" content="" />
+  <meta property="og:site_name" content="PlaNet solves control tasks from pixels by planning in latent space." />
+  <meta name="twitter:image" content="https://planetrl.github.io/assets/img/planet_logo_square.jpeg" />
+
+</head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css">
+
+<!--<script src="lib/jquery-1.12.4.min.js"></script>
+<script src="lib/mobile-detect.min.js"></script>-->
+<script src="lib/template.v1.js"></script>
+
+<script type="text/front-matter">
+  title: "Learning Latent Dynamics for Planning from Pixels"
+  description: ""
+</script>
+<body>
+<div style="text-align: center;">
+<video class="b-lazy" data-src="assets/mp4/planet_intro.mp4" type="video/mp4" autoplay muted playsinline loop style="display: block; margin: auto; width: 100%;" ></video>
+
+<table style="width: 100%;" cellspacing="0" cellpadding="0"><tr>
+<td width="100%"><figcaption style="text-align: center;">PlaNet solves control tasks from pixels in 50x fewer episodes compared to model-free algorithms, by planning in latent space.</figcaption></td>
+</tr></table>
+
+</div>
+
+<dt-article id="dtbody">
+
+<dt-byline class="l-page transparent"></dt-byline>
+<h1>Learning Latent Dynamics <br/> for Planning from Pixels</h1>
+<p></p>
+<dt-byline class="l-page" id="authors_section" hidden>
+<div class="byline">
+  <div class="authors">
+    <div class="author">
+        <a class="name" href="http://danijar.com/">Danijar Hafner</a>
+        <a class="affiliation" href="https://g.co/brain">Google Brain</a>
+    </div>
+    <div class="author">
+        <a class="name" href="http://contrastiveconvergence.net/">Timothy Lillicrap</a>
+        <a class="affiliation" href="https://deepmind.com/">DeepMind</a>
+    </div>
+    <div class="author">
+        <a class="name" href="https://github.com/iansf">Ian Fischer</a>
+        <a class="affiliation" href="https://ai.google/">Google Research</a>
+    </div>
+    <div class="author">
+        <a class="name" href="https://rubenvillegas.github.io/">Ruben Villegas</a>
+        <a class="affiliation" href="https://g.co/brain">Google Brain</a>
+    </div>
+    <div class="author">
+        <a class="name" href="http://blog.otoro.net/">David Ha</a>
+        <a class="affiliation" href="https://g.co/brain">Google Brain</a>
+    </div>
+    <div class="author">
+        <a class="name" href="http://web.eecs.umich.edu/~honglak/">Honglak Lee</a>
+        <a class="affiliation" href="https://g.co/brain">Google Brain</a>
+    </div>
+    <div class="author">
+        <a class="name" href="https://scholar.google.com/citations?user=JFEjS1QAAAAJ&hl=en">James Davidson</a>
+        <a class="affiliation" href="https://g.co/brain">Google Brain</a>
+    </div>
+  </div>
+  <div class="date">
+    <div class="month">Dec 3</div>
+    <div class="year">2018</div>
+  </div>
+  <div class="date">
+    <div class="month">Download</div>
+    <div class="year" style="color: #FF6C00;"><a href="https://arxiv.org/abs/1811.04551" target="_blank">PDF</a></div>
+  </div>
+</div>
+</dt-byline>
+</dt-byline><h2>Abstract</h2>
+<p>Planning has been very successful for control tasks with known environment dynamics. To leverage planning in unknown environments, the agent needs to learn the dynamics from interactions with the world. However, learning dynamics models that are accurate enough for planning has been a long-standing challenge, especially in image-based domains. We propose the Deep Planning Network (PlaNet), a purely model-based agent that learns the environment dynamics from images and chooses actions through fast online planning in latent space. To achieve high performance, the dynamics model must accurately predict the rewards ahead for multiple time steps. We approach this problem using a latent dynamics model with both deterministic and stochastic transition components and a multi-step variational inference objective that we call latent overshooting. Using only pixel observations, our agent solves continuous control tasks with contact dynamics, partial observability, and sparse rewards, which exceed the difficulty of tasks that were previously solved by planning with learned models. PlaNet uses substantially fewer episodes and reaches final performance close to and sometimes higher than strong model-free algorithms.</p>
+<hr>
+<h2>Introduction</h2>
+<p>Planning is a natural and powerful approach to decision making problems with known dynamics, such as game playing and simulated robot control <dt-cite key="tassa2012mpc,silver2017alphago,moravvcik2017deepstack"></dt-cite>. To plan in unknown environments, the agent needs to learn the dynamics from experience. Learning dynamics models that are accurate enough for planning has been a long-standing challenge. Key difficulties include model inaccuracies, accumulating errors of multi-step predictions, failure to capture multiple possible futures, and overconfident predictions outside of the training distribution.</p>
+<p>Planning using learned models offers several benefits over model-free reinforcement learning. First, model-based planning can be more data efficient because it leverages a richer training signal and does not require propagating rewards through Bellman backups. Moreover, planning carries the promise of increasing performance just by increasing the computational budget for searching for actions, as shown by <dt-cite key="silver2017alphago"></dt-cite>. Finally, learned dynamics can be independent of any specific task and thus have the potential to transfer well to other tasks in the environment.</p>
+<p>Recent work has shown promise in learning the dynamics of simple low-dimensional environments <dt-cite key="deisenroth2011pilco,gal2016deeppilco,amos2018awareness,chua2018pets,henaff2018planbybackprop"></dt-cite>. However, these approaches typically assume access to the underlying state of the world and the reward function, which may not be available in practice. In high-dimensional environments, we would like to learn the dynamics in a compact latent space to enable fast planning. The success of such latent models has been limited to simple tasks such as balancing cartpoles and controlling 2-link arms from dense rewards <dt-cite key="watter2015e2c,banijamali2017rce"></dt-cite>.</p>
+<p>In this paper, we propose the Deep Planning Network (PlaNet), a model-based agent that learns the environment dynamics from pixels and chooses actions through online planning in a compact latent space. To learn the dynamics, we use a transition model with both stochastic and deterministic components and train it using a generalized variational objective that encourages multi-step predictions. PlaNet solves continuous control tasks from pixels that are more difficult than those previously solved by planning with learned models.</p>
+<div style="text-align:left;">
+<figcaption>Figure 1: Image-based control domains used in our experiments. The figure shows agent observations before downscaling them to 64x64x3 pixels.</figcaption>
+<img src="assets/fig/control_suite.jpeg" style="display: block; margin: auto; width: 100%;"/>
+<figcaption>
+(a) For the cartpole balance and swingup tasks, the camera is fixed so the cart can move out of sight.<br/>
+(b) The finger spinning task includes contacts between the finger and the object.<br/>
+(c) The cheetah running task includes both contacts and a larger number of joints.<br/>
+(d) The cup task has a sparse reward that is only given once the ball is caught.<br/>
+(e) The walker task requires balance and predicting difficult interactions with the ground.
+</figcaption>
+</div>
+<p>Key contributions of this work are summarized as follows:</p>
+<ul>
+<li>
+<p><strong>Planning in latent spaces</strong>   We solve a variety of tasks from the DeepMind control suite, shown in Figure 1, by learning a dynamics model and efficiently planning in its latent space. Our agent substantially outperforms the model-free A3C and in some cases D4PG algorithm in final performance, with on average 50x less environment interaction and similar computation time.</p>
+</li>
+<li>
+<p><strong>Recurrent state space model</strong>   We design a latent dynamics model with both deterministic and stochastic components <dt-cite key="buesing2018dssm,chung2015vrnn"></dt-cite>. Our experiments indicate having both components to be crucial for high planning performance.</p>
+</li>
+<li>
+<p><strong>Latent overshooting</strong>   We generalize the standard variational bound to include multi-step predictions. Using only terms in latent space results in a fast and effective regularizer that improves long-term predictions and is compatible with any latent sequence model.</p>
+</li>
+</ul>
+<h2>Latent Space Planning</h2>
+<p>To solve unknown environments via planning, we need to model the environment dynamics from experience. PlaNet does so by iteratively collecting data using planning and training the dynamics model on the gathered data. In this section, we introduce notation for the environment and describe the general implementation of our model-based agent. In this section, we assume access to a learned dynamics model. Our design and training objective for this model are detailed later on in the <em>Recurrent State Space Model</em> and <em>Latent Overshooting</em> sections respectively.</p>
+<div style="text-align:left;">
+<img src="assets/fig/planet_algorithm.png" style="display: block; margin: auto; width: 75%;"/>
+</div>
+<p><strong>Problem setup</strong>   Since individual image observations generally do not reveal the full state of the environment, we consider a partially observable Markov decision process (POMDP). We define a discrete time step <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.61508em;"></span><span class="strut bottom" style="height:0.61508em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">t</span></span></span></span>, hidden states <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>s</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">s_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span>, image observations <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>o</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">o_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">o</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span>, continuous action vectors <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>a</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">a_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">a</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span>, and scalar rewards <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>r</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">r_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit" style="margin-right:0.02778em;">r</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.02778em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span>, that follow the stochastic dynamics:</p>
+<div style="text-align:left;">
+<img src="assets/fig/eq1.png" style="display: block; margin: auto; width: 75%;"/>
+</div>
+<p>where we assume a fixed initial state <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>s</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">s_0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathrm">0</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span> without loss of generality. The goal is to implement a policy <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>p</mi><mo>(</mo><msub><mi>a</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>o</mi><mrow><mo>≤</mo><mi>t</mi></mrow></msub><mo separator="true">,</mo><msub><mi>a</mi><mrow><mo>&lt;</mo><mi>t</mi></mrow></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">p(a_t|o_{\leq t},a_{\lt t})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit">p</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">a</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathrm">∣</span><span class="mord"><span class="mord mathit">o</span><span class="vlist"><span style="top:0.14999999999999997em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mrel">≤</span><span class="mord mathit">t</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">a</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mrel">&lt;</span><span class="mord mathit">t</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span> that maximizes the expected sum of rewards <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>E</mi><mrow><mi>p</mi></mrow></msub><mo>[</mo><msubsup><mo>∑</mo><mrow><mi>τ</mi><mo>=</mo><mi>t</mi><mo>+</mo><mn>1</mn></mrow><mi>T</mi></msubsup><mi>p</mi><mo>(</mo><msub><mi>r</mi><mi>τ</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>s</mi><mi>τ</mi></msub><mo>)</mo><mo>]</mo></mrow><annotation encoding="application/x-tex">E_{p}[ \sum_{\tau=t+1}^T p(r_\tau|s_\tau) ]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.8423309999999999em;"></span><span class="strut bottom" style="height:1.200672em;vertical-align:-0.358341em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit" style="margin-right:0.05764em;">E</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.05764em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">p</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mopen">[</span><span class="mop"><span class="op-symbol small-op mop" style="top:-0.0000050000000000050004em;">∑</span><span class="vlist"><span style="top:0.30001em;margin-left:0em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit" style="margin-right:0.1132em;">τ</span><span class="mrel">=</span><span class="mord mathit">t</span><span class="mbin">+</span><span class="mord mathrm">1</span></span></span></span><span style="top:-0.364em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord mathit" style="margin-right:0.13889em;">T</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathit">p</span><span class="mopen">(</span><span class="mord"><span class="mord mathit" style="margin-right:0.02778em;">r</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.02778em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit" style="margin-right:0.1132em;">τ</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathrm">∣</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit" style="margin-right:0.1132em;">τ</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span><span class="mclose">]</span></span></span></span>, where the expectation is over the distributions of the environment and the policy.</p>
+<p><strong>Model-based planning</strong>   PlaNet learns a transition model <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>p</mi><mo>(</mo><msub><mi>s</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>s</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo separator="true">,</mo><msub><mi>a</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">p(s_t|s_{t-1},a_{t-1})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit">p</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathrm">∣</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mbin">−</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">a</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mbin">−</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span>, observation model <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>p</mi><mo>(</mo><msub><mi>o</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>s</mi><mi>t</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">p(o_t|s_t)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit">p</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">o</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathrm">∣</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span>, and reward model <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>p</mi><mo>(</mo><msub><mi>r</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>s</mi><mi>t</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">p(r_t|s_t)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit">p</span><span class="mopen">(</span><span class="mord"><span class="mord mathit" style="margin-right:0.02778em;">r</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.02778em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathrm">∣</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span> from previously experienced episodes (note italic letters for the model compared to upright letters for the true dynamics). The observation model provides a training signal but is not used for planning. We also learn an encoder <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>q</mi><mo>(</mo><msub><mi>s</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>o</mi><mrow><mo>≤</mo><mi>t</mi></mrow></msub><mo separator="true">,</mo><msub><mi>a</mi><mrow><mo>&lt;</mo><mi>t</mi></mrow></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">q(s_t|o_{\leq t},a_{\lt t})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.03588em;">q</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathrm">∣</span><span class="mord"><span class="mord mathit">o</span><span class="vlist"><span style="top:0.14999999999999997em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mrel">≤</span><span class="mord mathit">t</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">a</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mrel">&lt;</span><span class="mord mathit">t</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span> to infer an approximate belief over the current hidden state from the history using filtering. Given these components, we implement the policy as a planning algorithm that searches for the best sequence of future actions. We use model-predictive control (MPC) <dt-cite key="richards2005mpc"></dt-cite> to allow the agent to adapt its plan based on new observations, meaning we replan at each step. In contrast to model-free and hybrid reinforcement learning algorithms, we do not use a policy network.</p>
+<p><strong>Experience collection</strong>   Since the agent may not initially visit all parts of the environment, we need to iteratively collect new experience and refine the dynamics model. We do so by planning with the partially trained model, as shown in Algorithm 1. Starting from a small amount of <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>S</mi></mrow><annotation encoding="application/x-tex">S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.68333em;"></span><span class="strut bottom" style="height:0.68333em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.05764em;">S</span></span></span></span> seed episodes collected under random actions, we train the model and add one additional episode to the data set every <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">C</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.68333em;"></span><span class="strut bottom" style="height:0.68333em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.07153em;">C</span></span></span></span> update steps. When collecting episodes for the data set, we add small Gaussian exploration noise to the action. To reduce the planning horizon and provide a clearer learning signal to the model, we repeat each action <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.68333em;"></span><span class="strut bottom" style="height:0.68333em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.00773em;">R</span></span></span></span> times, as is common in reinforcement learning <dt-cite key="mnih2015dqn,mnih2016a3c"></dt-cite>.</p>
+<p><strong>Planning algorithm</strong>   We use the cross entropy method (CEM) <dt-cite key="rubinstein1997cem,chua2018pets"></dt-cite> to search for the best action sequence under the model, as outlined in Algorithm 2 in the appendix section of our paper. We decided on this algorithm because of its robustness and because it solved all considered tasks when given the true dynamics for planning. CEM is a population-based optimization algorithm that infers a distribution over action sequences that maximize the objective. As detailed in Algorithm 2, we initialize a time-dependent diagonal Gaussian belief over optimal action sequences <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>a</mi><mrow><mi>t</mi><mo>:</mo><mi>t</mi><mo>+</mo><mi>H</mi></mrow></msub><mo>∼</mo><mi>N</mi><mo>(</mo><msub><mi>μ</mi><mrow><mi>t</mi><mo>:</mo><mi>t</mi><mo>+</mo><mi>H</mi></mrow></msub><mo separator="true">,</mo><msubsup><mi>σ</mi><mrow><mi>t</mi><mo>:</mo><mi>t</mi><mo>+</mo><mi>H</mi></mrow><mn>2</mn></msubsup><mi>I</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">a_{t:t+H}\sim N(\mu_{t:t+H},\sigma^2_{t:t+H} I)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.8141079999999999em;"></span><span class="strut bottom" style="height:1.14777em;vertical-align:-0.333662em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">a</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mrel">:</span><span class="mord mathit">t</span><span class="mbin">+</span><span class="mord mathit" style="margin-right:0.08125em;">H</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mrel">∼</span><span class="mord mathit" style="margin-right:0.10903em;">N</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">μ</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mrel">:</span><span class="mord mathit">t</span><span class="mbin">+</span><span class="mord mathit" style="margin-right:0.08125em;">H</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">σ</span><span class="vlist"><span style="top:0.275331em;margin-left:-0.03588em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mrel">:</span><span class="mord mathit">t</span><span class="mbin">+</span><span class="mord mathit" style="margin-right:0.08125em;">H</span></span></span></span><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord mathrm">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathit" style="margin-right:0.07847em;">I</span><span class="mclose">)</span></span></span></span>, where <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.61508em;"></span><span class="strut bottom" style="height:0.61508em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">t</span></span></span></span> is the current time step of the agent and <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>H</mi></mrow><annotation encoding="application/x-tex">H</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.68333em;"></span><span class="strut bottom" style="height:0.68333em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.08125em;">H</span></span></span></span> is the length of the planning horizon. Starting from zero mean and unit variance, we repeatedly sample <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>J</mi></mrow><annotation encoding="application/x-tex">J</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.68333em;"></span><span class="strut bottom" style="height:0.68333em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.09618em;">J</span></span></span></span> candidate action sequences, evaluate them under the model, and re-fit the belief to the top <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>K</mi></mrow><annotation encoding="application/x-tex">K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.68333em;"></span><span class="strut bottom" style="height:0.68333em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.07153em;">K</span></span></span></span> action sequences. After <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>I</mi></mrow><annotation encoding="application/x-tex">I</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.68333em;"></span><span class="strut bottom" style="height:0.68333em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.07847em;">I</span></span></span></span> iterations, the planner returns the mean of the belief for the current time step, <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>μ</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\mu_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">μ</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span>. Importantly, after receiving the next observation, the belief over action sequences starts from zero mean and unit variance again to avoid local optima.</p>
+<p>To evaluate a candidate action sequence under the learned model, we sample a state trajectory starting from the current state belief, and sum the mean rewards predicted along the sequence. Since we use a population-based optimizer, we found it sufficient to consider a single trajectory per action sequence and thus focus the computational budget on evaluating a larger number of different sequences. Because the reward is modeled as a function of the latent state, the planner can operate purely in latent space without generating images, which allows for fast evaluation of large batches of action sequences.</p>
+<p>The next section introduces the latent dynamics model that the planner uses.</p>
+<h2>Recurrent State Space Model</h2>
+<div style="text-align:left;">
+<figcaption>Figure 2: Latent dynamics model designs. In this example, the model observes the first two time steps and predicts the third. Circles represent stochastic variables and squares deterministic variables. Solid lines denote the generative process and dashed lines the inference model.<br/>
+</figcaption>
+<img src="assets/fig/rssm.png" style="display: block; margin: auto; width: 100%;"/>
+<figcaption><br/>
+(a) Transitions in a recurrent neural network are purely deterministic. This prevents the model from capturing multiple futures and makes it easy for the planner to exploit inaccuracies.<br/>
+(b) Transitions in a state-space model are purely stochastic. This makes it difficult to remember information over multiple time steps.<br/>
+(c) We split the state into stochastic and deterministic parts, allowing the model to robustly learn to predict multiple futures.
+</figcaption>
+</div>
+<p>For planning, we need to evaluate thousands of action sequences at every time step of the agent. Therefore, we use a recurrent state-space model (RSSM) that can predict forward purely in latent space, similar to recently proposed models <dt-cite key="karl2016dvbf,buesing2018dssm,doerr2018prssm"></dt-cite>. This model can be thought of as a non-linear Kalman filter or sequential VAE. Instead of an extensive comparison to prior architectures, we highlight two findings that can guide future designs of dynamics models: our experiments show that both stochastic and deterministic paths in the transition model are crucial for successful planning. In this section, we remind the reader of latent state-space models and then describe our dynamics model.</p>
+<p><strong>Latent dynamics</strong>   We consider sequences <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>{</mo><msub><mi>o</mi><mi>t</mi></msub><mo separator="true">,</mo><msub><mi>a</mi><mi>t</mi></msub><mo separator="true">,</mo><msub><mi>r</mi><mi>t</mi></msub><msubsup><mo>}</mo><mrow><mi>t</mi><mo>=</mo><mn>1</mn></mrow><mrow><mi>T</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">\{o_t,a_t,r_t\}_{t=1}^{T}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.8413309999999999em;"></span><span class="strut bottom" style="height:1.0913309999999998em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">{</span><span class="mord"><span class="mord mathit">o</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">a</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit" style="margin-right:0.02778em;">r</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.02778em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose"><span class="mclose">}</span><span class="vlist"><span style="top:0.24810799999999997em;margin-left:0em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mrel">=</span><span class="mord mathrm">1</span></span></span></span><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord scriptstyle uncramped"><span class="mord mathit" style="margin-right:0.13889em;">T</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span> with discrete time step <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.61508em;"></span><span class="strut bottom" style="height:0.61508em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">t</span></span></span></span>, high-dimensional image observations <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>o</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">o_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">o</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span>, continuous action vectors <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>a</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">a_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">a</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span>, and scalar rewards <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>r</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">r_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit" style="margin-right:0.02778em;">r</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.02778em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span>. A typical latent state-space model is shown in Figure 2b and resembles the structure of a partially observable Markov decision process. It defines the generative process of the images and rewards using a hidden state sequence <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>{</mo><msub><mi>s</mi><mi>t</mi></msub><msubsup><mo>}</mo><mrow><mi>t</mi><mo>=</mo><mn>1</mn></mrow><mi>T</mi></msubsup></mrow><annotation encoding="application/x-tex">\{s_t\}_{t=1}^T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.8413309999999999em;"></span><span class="strut bottom" style="height:1.0913309999999998em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">{</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose"><span class="mclose">}</span><span class="vlist"><span style="top:0.24810799999999997em;margin-left:0em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mrel">=</span><span class="mord mathrm">1</span></span></span></span><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord mathit" style="margin-right:0.13889em;">T</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span>,</p>
+<div style="text-align:left;">
+<img src="assets/fig/eq2.png" style="display: block; margin: auto; width: 75%;"/>
+</div>
+<p>where we assume a fixed initial state <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>s</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">s_0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathrm">0</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span> without loss of generality. The transition model is Gaussian with mean and variance parameterized by a feed-forward neural network, the observation model is Gaussian with mean parameterized by a deconvolutional neural network and identity covariance, and the reward model is a scalar Gaussian with mean parameterized by a feed-forward neural network and unit variance. Note that the log-likelihood under a Gaussian distribution with unit variance equals the mean squared error up to a constant.</p>
+<p><strong>Variational encoder</strong>   Since the model is non-linear, we cannot directly compute the state posteriors that are needed for parameter learning. Instead, we use an encoder <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>q</mi><mo>(</mo><msub><mi>s</mi><mrow><mn>1</mn><mo>:</mo><mi>T</mi></mrow></msub><mi mathvariant="normal">∣</mi><msub><mi>o</mi><mrow><mn>1</mn><mo>:</mo><mi>T</mi></mrow></msub><mo separator="true">,</mo><msub><mi>a</mi><mrow><mn>1</mn><mo>:</mo><mi>T</mi></mrow></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">q(s_{1:T}|o_{1:T},a_{1:T})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.03588em;">q</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathrm">1</span><span class="mrel">:</span><span class="mord mathit" style="margin-right:0.13889em;">T</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathrm">∣</span><span class="mord"><span class="mord mathit">o</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathrm">1</span><span class="mrel">:</span><span class="mord mathit" style="margin-right:0.13889em;">T</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">a</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathrm">1</span><span class="mrel">:</span><span class="mord mathit" style="margin-right:0.13889em;">T</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span> <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>=</mo></mrow><annotation encoding="application/x-tex">=</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.36687em;"></span><span class="strut bottom" style="height:0.36687em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mrel">=</span></span></span></span> <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msubsup><mo>∏</mo><mrow><mi>t</mi><mo>=</mo><mn>1</mn></mrow><mi>T</mi></msubsup><mi>q</mi><mo>(</mo><msub><mi>s</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>s</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo separator="true">,</mo><msub><mi>a</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo separator="true">,</mo><msub><mi>o</mi><mi>t</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">\prod_{t=1}^T q(s_t|s_{t-1},a_{t-1},o_t)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.8423309999999999em;"></span><span class="strut bottom" style="height:1.142341em;vertical-align:-0.30001em;"></span><span class="base textstyle uncramped"><span class="mop"><span class="op-symbol small-op mop" style="top:-0.0000050000000000050004em;">∏</span><span class="vlist"><span style="top:0.30001em;margin-left:0em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mrel">=</span><span class="mord mathrm">1</span></span></span></span><span style="top:-0.364em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord mathit" style="margin-right:0.13889em;">T</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathit" style="margin-right:0.03588em;">q</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathrm">∣</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mbin">−</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">a</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mbin">−</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">o</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span> to infer approximate state posteriors from past observations and actions, where <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>q</mi><mo>(</mo><msub><mi>s</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>s</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo separator="true">,</mo><msub><mi>a</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo separator="true">,</mo><msub><mi>o</mi><mi>t</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">q(s_t|s_{t-1},a_{t-1},o_t)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.03588em;">q</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathrm">∣</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mbin">−</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">a</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mbin">−</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">o</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span> is a diagonal Gaussian with mean and variance parameterized by a convolutional neural network followed by a feed-forward neural network. We use the filtering posterior that conditions on past observations since we are ultimately interested in using the model for planning, but one may also use the full smoothing posterior during training <dt-cite key="babaeizadeh2017sv2p"></dt-cite>.</p>
+<p><strong>Training objective</strong>   Using the encoder, we construct a variational bound on the data log-likelihood. For simplicity, we write losses for predicting only the observations -- the reward losses follow by analogy. The variational bound obtained using Jensen's inequality is</p>
+<div style="text-align:left;">
+<img src="assets/fig/eq3.png" style="display: block; margin: auto; width: 75%;"/>
+</div>
+<p>For the derivation, please see Equation 9 in the appendix of the paper. Estimating the outer expectations using a single reparameterized sample yields an efficient objective for inference and learning in non-linear latent variable models that can be optimized using gradient ascent <dt-cite key="kingma2013vae,rezende2014vae,krishnan2017ssmelbo"></dt-cite>.</p>
+<p><strong>Deterministic path</strong>   Despite its generality, the purely stochastic transitions make it difficult for the transition model to reliably remember information for multiple time steps. In theory, this model could learn to set the variance to zero for some state components, but the optimization procedure may not find this solution. This motivates including a deterministic sequence of activation vectors <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>h</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">h_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">h</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span>, <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>t</mi><mo>∈</mo><mn>1</mn><mo>…</mo><mi>T</mi></mrow><annotation encoding="application/x-tex">t \in 1 \ldots T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.68333em;"></span><span class="strut bottom" style="height:0.72243em;vertical-align:-0.0391em;"></span><span class="base textstyle uncramped"><span class="mord mathit">t</span><span class="mrel">∈</span><span class="mord mathrm">1</span><span class="minner">…</span><span class="mord mathit" style="margin-right:0.13889em;">T</span></span></span></span> that allow the model to access not just the last state but all previous states deterministically <dt-cite key="chung2015vrnn,buesing2018dssm"></dt-cite>. We use such a model, shown in Figure 2, that we name recurrent state-space model (RSSM),</p>
+<div style="text-align:left;">
+<img src="assets/fig/eq4.png" style="display: block; margin: auto; width: 75%;"/>
+</div>
+<p>where <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>f</mi><mo>(</mo><msub><mi>h</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo separator="true">,</mo><msub><mi>s</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo separator="true">,</mo><msub><mi>a</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">f(h_{t-1},s_{t-1},a_{t-1})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">h</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mbin">−</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mbin">−</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">a</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mbin">−</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span> is implemented as a recurrent neural network (RNN). Intuitively, we can understand this model as splitting the state into a stochastic part <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>s</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">s_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span> and a deterministic part <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>h</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">h_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">h</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span>, which depend on the stochastic and deterministic parts at the previous time step through the RNN. We use the encoder <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>q</mi><mo>(</mo><msub><mi>s</mi><mrow><mn>1</mn><mo>:</mo><mi>T</mi></mrow></msub><mi mathvariant="normal">∣</mi><msub><mi>o</mi><mrow><mn>1</mn><mo>:</mo><mi>T</mi></mrow></msub><mo separator="true">,</mo><msub><mi>a</mi><mrow><mn>1</mn><mo>:</mo><mi>T</mi></mrow></msub><mo>)</mo><mo>=</mo><msubsup><mo>∏</mo><mrow><mi>t</mi><mo>=</mo><mn>1</mn></mrow><mi>T</mi></msubsup><mi>q</mi><mo>(</mo><msub><mi>s</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>h</mi><mi>t</mi></msub><mo separator="true">,</mo><msub><mi>o</mi><mi>t</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">q(s_{1:T}|o_{1:T},a_{1:T})=\prod_{t=1}^T q(s_t|h_t,o_t)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.8423309999999999em;"></span><span class="strut bottom" style="height:1.142341em;vertical-align:-0.30001em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.03588em;">q</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathrm">1</span><span class="mrel">:</span><span class="mord mathit" style="margin-right:0.13889em;">T</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathrm">∣</span><span class="mord"><span class="mord mathit">o</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathrm">1</span><span class="mrel">:</span><span class="mord mathit" style="margin-right:0.13889em;">T</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">a</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathrm">1</span><span class="mrel">:</span><span class="mord mathit" style="margin-right:0.13889em;">T</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span><span class="mrel">=</span><span class="mop"><span class="op-symbol small-op mop" style="top:-0.0000050000000000050004em;">∏</span><span class="vlist"><span style="top:0.30001em;margin-left:0em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mrel">=</span><span class="mord mathrm">1</span></span></span></span><span style="top:-0.364em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord mathit" style="margin-right:0.13889em;">T</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathit" style="margin-right:0.03588em;">q</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathrm">∣</span><span class="mord"><span class="mord mathit">h</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">o</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span> to parameterize the approximate state posteriors. Importantly, all information about the observations must pass through the sampling step of the encoder to avoid a deterministic shortcut from inputs to reconstructions.</p>
+<p><strong>Global prior</strong>   The model can be trained using the same loss function (Equation 3). In addition, we add a fixed global prior to prevent the posteriors from collapsing in near-deterministic environments. This alleviates overfitting to the initially small training data set and grounds the state beliefs (since posteriors and temporal priors are both learned, they could drift in latent space). The global prior adds additional KL-divergence loss terms from each posterior to a standard Gaussian. Another interpretation of this is to define the prior at each time step as product of the learned temporal prior and the global fixed prior. In the next section, we identify a limitation of the standard objective for latent sequence models and propose a generalization of it that improves long-term predictions.</p>
+<h2>Latent Overshooting</h2>
+<div style="text-align:left;">
+<figcaption>Figure 3: Unrolling schemes.
+The labels <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>s</mi><mrow><mi>i</mi><mi mathvariant="normal">∣</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">s_{i|j}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.7857599999999999em;vertical-align:-0.3551999999999999em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.18019999999999992em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">i</span><span class="mord mathrm">∣</span><span class="mord mathit" style="margin-right:0.05724em;">j</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span> are short for the state at time <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.65952em;"></span><span class="strut bottom" style="height:0.65952em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">i</span></span></span></span> conditioned on observations up to time <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.65952em;"></span><span class="strut bottom" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.05724em;">j</span></span></span></span>.
+Arrows pointing at shaded circles indicate log-likelihood loss terms. Wavy arrows indicate KL-divergence loss terms.<br/>
+</figcaption>
+<img src="assets/fig/latent_overshooting.png" style="display: block; margin: auto; width: 100%;"/>
+<figcaption><br/>
+(a) The standard variational objectives decodes the posterior at every step to compute the reconstruction loss. It also places a KL on the prior and posterior at every step, which trains the transition function for one-step predictions.<br/>
+(b) Observation overshooting <dt-cite key="amos2018awareness"></dt-cite> decodes all multi-step predictions to apply additional reconstruction losses. This is typically too expensive in image domains.<br/>
+(c) Latent overshooting predicts all multi-step priors. These state beliefs are trained towards their corresponding posteriors in latent space to encourage accurate multi-step predictions.
+</figcaption>
+</div>
+<p>In the previous section, we derived the typical variational bound for learning and inference in latent sequence models (Equation 3). As show in Equation 3, this objective function contains reconstruction terms for the observations and KL-divergence regularizers for the approximate posteriors. A limitation of this objective is that the transition function <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>p</mi><mo>(</mo><msub><mi>s</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>s</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo separator="true">,</mo><msub><mi>a</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">p(s_t|s_{t-1},a_{t-1})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit">p</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathrm">∣</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mbin">−</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">a</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mbin">−</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span> is only trained via the KL-divergence regularizers for one-step predictions: the gradient flows through <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>p</mi><mo>(</mo><msub><mi>s</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>s</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo separator="true">,</mo><msub><mi>a</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">p(s_t|s_{t-1},a_{t-1})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit">p</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathrm">∣</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mbin">−</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">a</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mbin">−</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span> directly into <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>q</mi><mo>(</mo><msub><mi>s</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">q(s_{t-1})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.03588em;">q</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mbin">−</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span> but never traverses a chain of multiple <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>p</mi><mo>(</mo><msub><mi>s</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>s</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo separator="true">,</mo><msub><mi>a</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">p(s_t|s_{t-1},a_{t-1})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit">p</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mord mathrm">∣</span><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mbin">−</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">a</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">t</span><span class="mbin">−</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span>. In this section, we generalize this variational bound to <em>latent overshooting</em>, which trains all multi-step predictions in latent space.</p>
+<p><strong>Limited capacity</strong>   If we could train our model to make perfect one-step predictions, it would also make perfect multi-step predictions, so this would not be a problem. However, when using a model with limited capacity and restricted distributional family, training the model only on one-step predictions until convergence does in general not coincide with the model that is best at multi-step predictions. For successful planning, we need accurate multi-step predictions. Therefore, we take inspiration from <dt-cite key="amos2018awareness"></dt-cite> and earlier related ideas <dt-cite key="chiappa2017recurrent,villegas2017hierarchical,lamb2016professor"></dt-cite>, and train the model on multi-step predictions of all distances. We develop this idea for latent sequence models, showing that multi-step predictions can be improved by a loss in latent space, without having to generate additional images.</p>
+<p><strong>Multi-step prediction</strong>   We start by generalizing the standard variational bound (Equation 3) from training one-step predictions to training multi-step predictions of a fixed distance <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.69444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">d</span></span></span></span>. For ease of notation, we omit actions in the conditioning set here; every distribution over <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>s</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">s_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">t</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span> is conditioned upon <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>a</mi><mrow><mo>&lt;</mo><mi>t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">a_{\lt t}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.60793em;vertical-align:-0.17737em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">a</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mrel">&lt;</span><span class="mord mathit">t</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span>. We first define multi-step predictions, which are computed by repeatedly applying the transition model and integrating out the intermediate states,</p>
+<div style="text-align:left;">
+<img src="assets/fig/eq5.png" style="display: block; margin: auto; width: 75%;"/>
+</div>
+<p>The case <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>d</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">d=1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.69444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">d</span><span class="mrel">=</span><span class="mord mathrm">1</span></span></span></span> recovers the one-step transitions used in the original model. Given this definition of a multi-step prediction, we generalize Equation 3 to the variational bound on the multi-step predictive distribution <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>p</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">p_d</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">p</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">d</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span>,</p>
+<div style="text-align:left;">
+<img src="assets/fig/eq6.png" style="display: block; margin: auto; width: 75%;"/>
+</div>
+<p>For the derivation, please see Equation 10 in the appendix. Maximizing this objective trains the multi-step predictive distribution. This reflects the fact that during planning, the model makes predictions without having access to all the preceding observations.</p>
+<p>We conjecture that Equation 6 is also a lower bound on <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>ln</mi><mi>p</mi><mo>(</mo><msub><mi>o</mi><mrow><mn>1</mn><mo>:</mo><mi>T</mi></mrow></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">\ln p(o_{1:T})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mop">ln</span><span class="mord mathit">p</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">o</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathrm">1</span><span class="mrel">:</span><span class="mord mathit" style="margin-right:0.13889em;">T</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mclose">)</span></span></span></span> based on the data processing inequality. Since the latent state sequences is Markovian, for <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>d</mi><mo>≥</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">d\geq 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.83041em;vertical-align:-0.13597em;"></span><span class="base textstyle uncramped"><span class="mord mathit">d</span><span class="mrel">≥</span><span class="mord mathrm">1</span></span></span></span> we have</p>
+<div style="text-align:left;">
+<img src="assets/fig/eq7.png" style="display: block; margin: auto; width: 75%;"/>
+</div>
+<p>Thus, Equation 10 bounds both the multi-step and one-step predictive distributions of the model. In the next paragraph, we alleviate the limitation that a particular <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>p</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">p_d</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">p</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">d</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span> does not consider the <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>d</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">d-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.77777em;vertical-align:-0.08333em;"></span><span class="base textstyle uncramped"><span class="mord mathit">d</span><span class="mbin">−</span><span class="mord mathrm">1</span></span></span></span> most recent observations at each time step and arrive at our final objective.</p>
+<p><strong>Latent overshooting</strong>   We introduced a bound on predictions of a given distance <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.69444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">d</span></span></span></span>. However, for planning we need accurate predictions not just for a fixed distance but for all distances up to the planning horizon. We introduce latent overshooting for this, an objective function for latent sequence models that generalizes the standard variational bound (\cref{eq:elbo}) to train the model on multi-step predictions of all distances <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn><mo>≤</mo><mi>d</mi><mo>≤</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">1 \leq d \leq D</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.83041em;vertical-align:-0.13597em;"></span><span class="base textstyle uncramped"><span class="mord mathrm">1</span><span class="mrel">≤</span><span class="mord mathit">d</span><span class="mrel">≤</span><span class="mord mathit" style="margin-right:0.02778em;">D</span></span></span></span>,</p>
+<div style="text-align:left;">
+<img src="assets/fig/eq8.png" style="display: block; margin: auto; width: 75%;"/>
+</div>
+<p>Latent overshooting can be interpreted as a regularizer in latent space that encourages consistency between one-step and multi-step predictions, which we know should be equivalent in expectation over the data set. We include weighting factors <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>β</mi><mi>d</mi></msub><mo separator="true">,</mo><mi>d</mi><mo>∈</mo><mn>1</mn><mo>…</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">\beta_d, d \in 1 \ldots D</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit" style="margin-right:0.05278em;">β</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.05278em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">d</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span><span class="mpunct">,</span><span class="mord mathit">d</span><span class="mrel">∈</span><span class="mord mathrm">1</span><span class="minner">…</span><span class="mord mathit" style="margin-right:0.02778em;">D</span></span></span></span> analogously to the <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.05278em;">β</span></span></span></span>-VAE <dt-cite key="higgins2016beta"></dt-cite>. While we set all <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>β</mi><mrow><mo>&gt;</mo><mn>1</mn></mrow></msub></mrow><annotation encoding="application/x-tex">\beta_{\gt 1}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit" style="margin-right:0.05278em;">β</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.05278em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mrel">&gt;</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span> to the same value for simplicity, they could be chosen to let the model focus more on long-term or short-term predictions. In practice, we stop gradients of the posterior distributions for overshooting distances <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>d</mi><mo>&gt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">d&gt;1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.73354em;vertical-align:-0.0391em;"></span><span class="base textstyle uncramped"><span class="mord mathit">d</span><span class="mrel">&gt;</span><span class="mord mathrm">1</span></span></span></span>, so that the multi-step predictions are trained towards the informed posteriors, but not the other way around. Equation 8 is the final objective function that we use to train the dynamics model of our agent.</p>
+<h2>Experiments</h2>
+<p>We evaluate PlaNet on six continuous control tasks from pixels. We explore multiple design axes of the agent: the stochastic and deterministic paths in the dynamics model, the latent overshooting objective, and online experience collection. We refer to the appendix for hyper parameters. Besides the action repeat, we use the same hyper parameters for all tasks. Within one fiftieth the episodes, PlaNet outperforms A3C <dt-cite key="mnih2016a3c"></dt-cite> and achieves similar performance to the top model-free algorithm D4PG <dt-cite key="barth2018d4pg"></dt-cite>. The training time of 1 day on a single Nvidia V100 GPU is comparable to that of D4PG. Our implementation uses TensorFlow Probability <dt-cite key="dillon2017tfd"></dt-cite> and will be open sourced. Please see the following video of the trained agents:</p>
+<div style="text-align:left;">
+<div style="width: 100%; height: 0px; position: relative; padding-bottom: 56.250%;"><iframe src="https://streamable.com/s/wmaxz/whzzu" frameborder="0" width="100%" height="100%" allowfullscreen style="width: 100%; height: 100%; position: absolute;"></iframe></div>
+</div>
+<p>For our evaluation, we consider six image-based continuous control tasks of the DeepMind control suite <dt-cite key="tassa2018dmcontrol"></dt-cite>, shown in Figure 1. These environments provide qualitatively different challenges. The cartpole swingup task requires a long planning horizon and to memorize the cart when it is out of view, the finger spinning task includes contact dynamics between the finger and the object, the cheetah tasks exhibit larger state and action spaces, the cup task only has a sparse reward for when the ball is caught, and the walker is challenging because the robot first has to stand up and then walk, resulting in collisions with the ground that are difficult to predict. In all tasks, the only observations are third-person camera images of size 64x64x3 pixels.</p>
+<div style="text-align:left;">
+<img src="assets/fig/result_model.png" style="display: block; margin: auto; width: 100%;"/>
+<figcaption>Figure 4: Comparison of PlaNet to model-free algorithms and other model designs. Plots show test performance for the number of collected episodes. We compare PlaNet using our RSSM to purely deterministic (RNN) and purely stochastic models (SSM). The RNN does not use latent overshooting, as it does not have stochastic latents. The lines show medians and the areas show percentiles 5 to 95 over 4 seeds and 10 rollouts.<br/>
+</figcaption>
+</div>
+<p><strong>Comparison to model-free methods</strong>   Figure 4 compares the performance of PlaNet to the model-free algorithms reported by <dt-cite key="tassa2018dmcontrol"></dt-cite>. Within 500 episodes, PlaNet outperforms the policy-gradient method A3C trained from proprioceptive states for 100,000 episodes, on all tasks. After 2,000 episodes, it achieves similar performance to D4PG, trained from images for 100,000 episodes, except for the finger task. On the cheetah running task, PlaNet surpasses the final performance of D4PG with a relative improvement of 19%. We refer to Table 1 for numerical results, which also includes the performance of CEM planning with the true dynamics of the simulator.</p>
+<p><strong>Model designs</strong>   Figure 4 additionally compares design choices of the dynamics model. We train PlaNet using our recurrent state-space model (RSSM), as well as versions with purely deterministic GRU <dt-cite key="cho2014gru"></dt-cite>, and purely stochastic state-space model (SSM). We observe the importance of both stochastic and deterministic elements in the transition function on all tasks. The stochastic component might help because the tasks are stochastic from the agent's perspective due to partial observability of the initial states. The noise might also add a safety margin to the planning objective that results in more robust action sequences. The deterministic part allows the model to remember information over many time steps and is even more important -- the agent does not learn without it.</p>
+<div style="text-align:left;">
+<img src="assets/fig/result_agent.png" style="display: block; margin: auto; width: 100%;"/>
+<figcaption>Figure 5: Comparison of agent designs. Plots show test performance for the number of collected episodes. We compare PlaNet using latent overshooting (Equation 8), a version with standard variational objective (Equation 3), and a version that trains from a random data set of 1000 episodes rather than collecting experience during training. The lines show medians and the areas show percentiles 5 to 95 over 4 seeds and 10 rollouts.<br/>
+</figcaption>
+</div>
+<p><strong>Agent designs</strong>   Figure 5 compares PlaNet with latent overshooting to versions with standard variational objective, and with a fixed random data set rather than collecting experience online. We observe that online data collection helps all tasks and is necessary for the finger and walker tasks. Latent overshooting is necessary for successful planning on the walker and cup tasks; the sparse reward in the cup task demands accurate predictions for many time steps. It also slows down initial learning for the finger task, but increases final performance on the cartpole balance and cheetah tasks.</p>
+<p><strong>One agent all tasks</strong>   Figure 7 in the appendix shows the performance of a single agent trained on all six tasks. For this, we modify Algorithm 1 so that every time it would collect an episode, it instead collects one episode of each task. The agent is not told which task it is facing; it needs to infer this from the image observations. We use the same hyper parameters as for the main experiments above. The agent reaches the same average performance over tasks as agents individually for each task. While learning is slowed down for the cup task and the easier cartpole tasks, it is substantially improved for the difficult task of walker. This indicates that positive transfer between these tasks might be possible using model-based reinforcement learning, regardless of the conceptually different visuals.</p>
+<div style="text-align:left;">
+<img src="assets/fig/result_table.png" style="display: block; margin: auto; width: 100%;"/>
+<figcaption>Table 1: Comparison of PlaNet to the model-free algorithms A3C and D4PG reported by <dt-cite key="tassa2018dmcontrol"></dt-cite>. The training curves for these are shown as orange lines in Figure~4 and as solid green lines in Figure~6 in their paper. From these, we estimate the number of episodes that D4PG takes to achieve the final performance of PlaNet to estimate the data efficiency gain. We further include CEM planning (H=12,I=10,J=1000,K=100) with the true simulator instead of learned dynamics as an estimated upper bound on performance. Numbers indicate mean final performance over 4 seeds.<br/>
+</figcaption>
+</div>
+<h2>Related Work and Discussion</h2>
+<p>Previous work in model-based reinforcement learning has focused on planning in low-dimensional state spaces <dt-cite key="gal2016deeppilco,higuera2018synthesizing,henaff2018planbybackprop,chua2018pets"></dt-cite>, combining the benefits of model-based and model-free approaches <dt-cite key="kalweit2017blending,nagabandi2017mbmf,weber2017i2a,kurutach2018modeltrpo,buckman2018steve,ha2018worldmodels,wayne2018merlin,igl2018dvrl,srinivas2018upn"></dt-cite>, and pure video prediction without planning <dt-cite key="oh2015atari,krishnan2015deepkalman,karl2016dvbf,chiappa2017recurrent,babaeizadeh2017sv2p,gemici2017temporalmemory,denton2018stochastic,buesing2018dssm,doerr2018prssm,gregor2018tdvae"></dt-cite>.</p>
+<p><strong>Planning in state space</strong>   When low-dimensional states of the environment are available to the agent, it is possible to learn the dynamics directly in state space. In the regime of control tasks with only a few state variables, such as the cart pole and mountain car tasks, PILCO <dt-cite key="deisenroth2011pilco"></dt-cite> achieves remarkable sample efficiency using Gaussian processes to model the dynamics. Similar approaches using neural networks dynamics models can solve two-link balancing problems <dt-cite key="gal2016deeppilco,higuera2018synthesizing"></dt-cite> and implement planning via gradients <dt-cite key="henaff2018planbybackprop"></dt-cite>. <dt-cite key="chua2018pets"></dt-cite> use ensembles of neural networks, scaling up to the cheetah running task. The limitation of these methods is that they access the low-dimensional Markovian state of the underlying system and sometimes the reward function. <dt-cite key="amos2018awareness"></dt-cite> train a deterministic model using overshooting in observation space for active exploration with a robotics hand. We move beyond low-dimensional state representations and use a latent dynamics model to solve control tasks from images.</p>
+<p><strong>Hybrid agents</strong>   The challenges of model-based RL have motivated the research community to develop hybrid agents that accelerate policy learning by training on imagined experience <dt-cite key="kalweit2017blending,nagabandi2017mbmf,kurutach2018modeltrpo,buckman2018steve,ha2018worldmodels"></dt-cite>, improving feature representations <dt-cite key="wayne2018merlin,igl2018dvrl"></dt-cite>, or leveraging the information content of the model directly <dt-cite key="weber2017i2a"></dt-cite>. <dt-cite key="srinivas2018upn"></dt-cite> learn a policy network with integrated planning computation using reinforcement learning and without prediction loss, yet require expert demonstrations for training.</p>
+<p><strong>Multi-step predictions</strong>   Training sequence models on multi-step predictions has been explored for several years. Scheduled sampling <dt-cite key="bengio2015scheduled"></dt-cite> changes the rollout distance of the sequence model over the course of training. Hallucinated replay <dt-cite key="talvitie2014hallucinated"></dt-cite> mixes predictions into the data set to indirectly train multi-step predictions. <dt-cite key="venkatraman2015dad"></dt-cite> take an imitation learning approach. Recently, <dt-cite key="amos2018awareness"></dt-cite> train a dynamics model on all multi-step predictions at once. We generalize this idea to latent sequence models trained via variational inference.</p>
+<p><strong>Latent sequence models</strong>   Classic work has explored models for non-Markovian observation sequences, including recurrent neural networks (RNNs) with deterministic hidden state and probabilistic state-space models (SSMs). The ideas behind variational autoencoders <dt-cite key="kingma2013vae,rezende2014vae"></dt-cite> have enabled non-linear SSMs that are trained via variational inference <dt-cite key="krishnan2015deepkalman"></dt-cite>. The VRNN <dt-cite key="chung2015vrnn"></dt-cite> combines RNNs and SSMs and is trained via variational inference. In contrast to our RSSM, it feeds generated observations back into the model which makes forward predictions expensive. <dt-cite key="karl2016dvbf"></dt-cite> address mode collapse to a single future by restricting the transition function,<dt-cite key="moerland2017learning"></dt-cite> focus on multi-modal transitions, and <dt-cite key="doerr2018prssm"></dt-cite> stabilize training of purely stochastic models. <dt-cite key="buesing2018dssm"></dt-cite> propose a model similar to ours but use in a hybrid agent instead for explicit planning.</p>
+<p><strong>Video prediction</strong>   Video prediction is an active area of research in deep learning. <dt-cite key="oh2015atari"></dt-cite> and <dt-cite key="chiappa2017recurrent"></dt-cite> achieve visually plausible predictions on Atari games using deterministic models. <dt-cite key="kalchbrenner2016vpn"></dt-cite> introduce an autoregressive video prediction model using gated CNNs and LSTMs. Recent approaches introduce stochasticity to the model to capture multiple futures <dt-cite key="babaeizadeh2017sv2p,denton2018stochastic"></dt-cite>. To obtain realistic predictions, <dt-cite key="mathieu2015deep"></dt-cite> and <dt-cite key="vondrick2016generating"></dt-cite> use adversarial losses. In simulated environments, <dt-cite key="gemici2017temporalmemory"></dt-cite> augment dynamics models with an external memory to remember long-time contexts. <dt-cite key="van2017vq"></dt-cite> propose a variational model that avoids sampling using a nearest neighbor look-up, yielding high fidelity image predictions. These models are complimentary to our approach.</p>
+<p>Relatively few works have demonstrated successful planning from pixels using learned dynamics models. The robotics community focuses on video prediction models for planning <dt-cite key="agrawal2016poking,finn2017foresight,ebert2018foresight"></dt-cite> that deal with the visual complexity of the real world and solve tasks with a simple gripper, such as grasping or pushing objects. In comparison, we focus on simulated environments, where we leverage latent planning to scale to larger state and action spaces, longer planning horizons, as well as sparse reward tasks. E2C <dt-cite key="watter2015e2c"></dt-cite> and RCE <dt-cite key="banijamali2017rce"></dt-cite> embed images into a latent space, where they learn local-linear latent transitions and plan for actions using LQR. These methods balance simulated cartpoles and control 2-link arms from images, but have been difficult to scale up. We lift the Markov assumption of these models, making our method applicable under partial observability, and present results on more challenging environments that include longer planning horizons, contact dynamics, and sparse rewards.</p>
+<p>In this work, we present PlaNet, a model-based agent that learns a latent dynamics model from image observations and chooses actions by fast planning in latent space. To enable accurate long-term predictions, we design a model with both stochastic and deterministic paths and train it using our proposed latent overshooting objective. We show that our agent is successful at several continuous control tasks from image observations, reaching performance that is comparable to the best model-free algorithms while using 50x fewer episodes and similar training time. The results show that learning latent dynamics models for planning in image domains is a promising approach.</p>
+<p>Directions for future work include learning temporal abstraction instead of using a fixed action repeat, possibly through hierarchical models. To further improve final performance, one could learn a value function to approximate the sum of rewards beyond the planning horizon. Moreover, exploring gradient-based planners could increase computational efficiency of the agent. Our work provides a starting point for multi-task control by sharing the dynamics model.</p>
+<p><em>If you would like to discuss any issues or give feedback regarding this work, please visit the <a href="https://github.com/planetrl/planetrl.github.io/issues">GitHub</a> repository of this article.</em></p>
+</dt-article>
+<dt-appendix>
+<h2>Acknowledgments</h2>
+<p>We thank Jacob Buckman, Nicolas Heess, John Schulman, Rishabh Agarwal, Silviu Pitis, Mohammad Norouzi, George Tucker, David Duvenaud, Shane Gu, Chelsea Finn, Steven Bohez, Jimmy Ba, Stephanie Chan, and Jenny Liu for helpful discussions.</p>
+<p>This article was prepared using the <a href="https://distill.pub">Distill</a> <a href="https://github.com/distillpub/template">template</a>.</p>
+<h3 id="citation">Citation</h3>
+<p>For attribution in academic contexts, please cite this work as</p>
+<pre class="citation short">Hafner et al., "Learning Latent Dynamics for Planning from Pixels", 2018.</pre>
+<p>BibTeX citation</p>
+<pre class="citation long">@article{hafner2018learning,
+  title={Learning Latent Dynamics for Planning from Pixels},
+  author={Hafner, Danijar and Lillicrap, Timothy and Fischer, Ian and Villegas, Ruben and Ha, David and Lee, Honglak and Davidson, James},
+  journal={arXiv preprint arXiv:1811.04551},
+  year={2018}
+}</pre>
+</dt-appendix>
+</dt-appendix>
+</body>
+<script type="text/bibliography">
+@inproceedings{xue2016visual,
+  title={Visual dynamics: Probabilistic future frame synthesis via cross convolutional networks},
+  author={Xue, Tianfan and Wu, Jiajun and Bouman, Katherine and Freeman, Bill},
+  booktitle={Advances in Neural Information Processing Systems},
+  year={2016}
+}
+
+@article{lotter2016deep,
+  title={Deep predictive coding networks for video prediction and unsupervised learning},
+  author={Lotter, William and Kreiman, Gabriel and Cox, David},
+  journal={arXiv preprint arXiv:1605.08104},
+  year={2016}
+}
+
+@article{villegas2017hierarchical,
+  title={Learning to generate long-term future via hierarchical prediction},
+  author={Villegas, Ruben and Yang, Jimei and Zou, Yuliang and Sohn, Sungryull and Lin, Xunyu and Lee, Honglak},
+  journal={arXiv preprint arXiv:1704.05831},
+  year={2017}
+}
+
+@article{villegas2017decomposing,
+  title={Decomposing motion and content for natural video sequence prediction},
+  author={Villegas, Ruben and Yang, Jimei and Hong, Seunghoon and Lin, Xunyu and Lee, Honglak},
+  journal={arXiv preprint arXiv:1706.08033},
+  year={2017}
+}
+
+@inproceedings{finn2016unsupervised,
+  title={Unsupervised learning for physical interaction through video prediction},
+  author={Finn, Chelsea and Goodfellow, Ian and Levine, Sergey},
+  booktitle={Advances in neural information processing systems},
+  pages={64--72},
+  year={2016}
+}
+
+@inproceedings{vondrick2016generating,
+  title={Generating videos with scene dynamics},
+  author={Vondrick, Carl and Pirsiavash, Hamed and Torralba, Antonio},
+  booktitle={Advances In Neural Information Processing Systems},
+  year={2016}
+}
+pages={613--621},
+
+@article{mathieu2015deep,
+  title={Deep multi-scale video prediction beyond mean square error},
+  author={Mathieu, Michael and Couprie, Camille and LeCun, Yann},
+  journal={arXiv preprint arXiv:1511.05440},
+  year={2015}
+}
+
+@article{kalchbrenner2016vpn,
+  title={Video pixel networks},
+  author={Kalchbrenner, Nal and Oord, Aaron van den and Simonyan, Karen and Danihelka, Ivo and Vinyals, Oriol and Graves, Alex and Kavukcuoglu, Koray},
+  journal={arXiv preprint arXiv:1610.00527},
+  year={2016}
+}
+
+@article{babaeizadeh2017sv2p,
+  title={Stochastic Variational Video Prediction},
+  author={Babaeizadeh, Mohammad and Finn, Chelsea and Erhan, Dumitru and Campbell, Roy H and Levine, Sergey},
+  journal={arXiv preprint arXiv:1710.11252},
+  year={2017}
+}
+
+@article{denton2018stochastic,
+  title={Stochastic Video Generation with a Learned Prior},
+  author={Denton, Emily and Fergus, Rob},
+  journal={arXiv preprint arXiv:1802.07687},
+  year={2018}
+}
+
+@article{nagabandi2017mbmf,
+  title={Neural network dynamics for model-based deep reinforcement learning with model-free fine-tuning},
+  author={Nagabandi, Anusha and Kahn, Gregory and Fearing, Ronald S and Levine, Sergey},
+  journal={arXiv preprint arXiv:1708.02596},
+  year={2017}
+}
+
+@article{bansal2017mbmf,
+  title={MBMF: Model-Based Priors for Model-Free Reinforcement Learning},
+  author={Bansal, Somil and Calandra, Roberto and Levine, Sergey and Tomlin, Claire},
+  journal={arXiv preprint arXiv:1709.03153},
+  year={2017}
+}
+
+@inproceedings{watter2015e2c,
+  title={Embed to control: A locally linear latent dynamics model for control from raw images},
+  author={Watter, Manuel and Springenberg, Jost and Boedecker, Joschka and Riedmiller, Martin},
+  booktitle={Advances in neural information processing systems},
+  pages={2746--2754},
+  year={2015}
+}
+
+@article{banijamali2017rce,
+  title={Robust locally-linear controllable embedding},
+  author={Banijamali, Ershad and Shu, Rui and Ghavamzadeh, Mohammad and Bui, Hung and Ghodsi, Ali},
+  journal={arXiv preprint arXiv:1710.05373},
+  year={2017}
+}
+
+@article{buesing2018dssm,
+  title={Learning and Querying Fast Generative Models for Reinforcement Learning},
+  author={Buesing, Lars and Weber, Theophane and Racaniere, Sebastien and Eslami, SM and Rezende, Danilo and Reichert, David P and Viola, Fabio and Besse, Frederic and Gregor, Karol and Hassabis, Demis and others},
+  journal={arXiv preprint arXiv:1802.03006},
+  year={2018}
+}
+
+@article{ebert2017,
+  title={Self-supervised visual planning with temporal skip connections},
+  author={Ebert, Frederik and Finn, Chelsea and Lee, Alex X. and Levine, Sergey},
+  journal={Conference on Robot Learning},
+  year={2017}
+}
+
+
+@article{banijamali2017disentangling,
+  title={Disentangling Dynamics and Content for Control and Planning},
+  author={Banijamali, Ershad and Khajenezhad, Ahmad and Ghodsi, Ali and Ghavamzadeh, Mohammad},
+  journal={arXiv preprint arXiv:1711.09165},
+  year={2017}
+}
+
+@article{wahlstrom2015pixels,
+  title={Learning deep dynamical models from image pixels},
+  author={Wahlstr{\"o}m, Niklas and Sch{\"o}n, Thomas B and Deisenroth, Marc Peter},
+  journal={IFAC-PapersOnLine},
+  volume={48},
+  number={28},
+  pages={1059--1064},
+  year={2015},
+  publisher={Elsevier}
+}
+
+@inproceedings{amos2018awareness,
+  title={Learning Awareness Models},
+  author={Brandon Amos and Laurent Dinh and Serkan Cabi and Thomas Rothörl and Alistair Muldal and Tom Erez and Yuval Tassa and Nando de Freitas and Misha Denil},
+  booktitle={International Conference on Learning Representations},
+  year={2018}
+}
+
+@inproceedings{kalweit2017blending,
+  title={Uncertainty-driven Imagination for Continuous Deep Reinforcement Learning},
+  author={Kalweit, Gabriel and Boedecker, Joschka},
+  booktitle={Conference on Robot Learning},
+  pages={195--206},
+  year={2017}
+}
+
+@article{higuera2018synthesizing,
+  title={Synthesizing Neural Network Controllers with Probabilistic Model based Reinforcement Learning},
+  author={Higuera, Juan Camilo Gamboa and Meger, David and Dudek, Gregory},
+  journal={arXiv preprint arXiv:1803.02291},
+  year={2018}
+}
+
+@inproceedings{deisenroth2011pilco,
+  title={PILCO: A model-based and data-efficient approach to policy search},
+  author={Deisenroth, Marc and Rasmussen, Carl E},
+  booktitle={Proceedings of the 28th International Conference on machine learning (ICML-11)},
+  pages={465--472},
+  year={2011}
+}
+
+@inproceedings{gal2016deeppilco,
+  title={Improving PILCO with Bayesian neural network dynamics models},
+  author={Gal, Yarin and McAllister, Rowan and Rasmussen, Carl Edward},
+  booktitle={Data-Efficient Machine Learning workshop, ICML},
+  year={2016}
+}
+
+@article{rusu2016progressive,
+  title={Progressive neural networks},
+  author={Rusu, Andrei A and Rabinowitz, Neil C and Desjardins, Guillaume and Soyer, Hubert and Kirkpatrick, James and Kavukcuoglu, Koray and Pascanu, Razvan and Hadsell, Raia},
+  journal={arXiv preprint arXiv:1606.04671},
+  year={2016}
+}
+
+@inproceedings{teh2017distral,
+  title={Distral: Robust multitask reinforcement learning},
+  author={Teh, Yee and Bapst, Victor and Czarnecki, Wojciech M and Quan, John and Kirkpatrick, James and Hadsell, Raia and Heess, Nicolas and Pascanu, Razvan},
+  booktitle={Advances in Neural Information Processing Systems},
+  pages={4499--4509},
+  year={2017}
+}
+
+@article{sutton1991dyna,
+  title={Dyna, an integrated architecture for learning, planning, and reacting},
+  author={Sutton, Richard S},
+  journal={ACM SIGART Bulletin},
+  volume={2},
+  number={4},
+  pages={160--163},
+  year={1991},
+  publisher={ACM}
+}
+
+@article{ha2018worldmodels,
+  title={World Models},
+  author={Ha, David and Schmidhuber, J{\"u}rgen},
+  journal={arXiv preprint arXiv:1803.10122},
+  url={https://worldmodels.github.io/},
+  year={2018}
+}
+
+@article{henaff2018planbybackprop,
+  title={Model-Based Planning with Discrete and Continuous Actions},
+  author={Henaff, Mikael and Whitney, William F and LeCun, Yann},
+  journal={arXiv preprint arXiv:1705.07177},
+  year={2018}
+}
+
+@inproceedings{heess2015svg,
+  title={Learning continuous control policies by stochastic value gradients},
+  author={Heess, Nicolas and Wayne, Gregory and Silver, David and Lillicrap, Tim and Erez, Tom and Tassa, Yuval},
+  booktitle={Advances in Neural Information Processing Systems},
+  pages={2944--2952},
+  year={2015}
+}
+
+@inproceedings{finn2017foresight,
+  title={Deep visual foresight for planning robot motion},
+  author={Finn, Chelsea and Levine, Sergey},
+  booktitle={Robotics and Automation (ICRA), 2017 IEEE International Conference on},
+  pages={2786--2793},
+  year={2017},
+  organization={IEEE}
+}
+
+@article{kingma2013vae,
+  title={Auto-encoding variational bayes},
+  author={Kingma, Diederik P and Welling, Max},
+  journal={arXiv preprint arXiv:1312.6114},
+  year={2013}
+}
+
+@article{rezende2014vae,
+  title={Stochastic backpropagation and approximate inference in deep generative models},
+  author={Rezende, Danilo Jimenez and Mohamed, Shakir and Wierstra, Daan},
+  journal={arXiv preprint arXiv:1401.4082},
+  year={2014}
+}
+
+@article{rao2009control,
+  title={A survey of numerical methods for optimal control},
+  author={Rao, Anil V},
+  journal={Advances in the Astronautical Sciences},
+  volume={135},
+  number={1},
+  pages={497--528},
+  year={2009},
+  publisher={Univelt, Inc.}
+}
+
+@article{weber2017i2a,
+  title={Imagination-augmented agents for deep reinforcement learning},
+  author={Weber, Th{\'e}ophane and Racani{\`e}re, S{\'e}bastien and Reichert, David P and Buesing, Lars and Guez, Arthur and Rezende, Danilo Jimenez and Badia, Adria Puigdom{\`e}nech and Vinyals, Oriol and Heess, Nicolas and Li, Yujia and others},
+  journal={arXiv preprint arXiv:1707.06203},
+  year={2017}
+}
+
+@inproceedings{oh2015atari,
+  title={Action-conditional video prediction using deep networks in atari games},
+  author={Oh, Junhyuk and Guo, Xiaoxiao and Lee, Honglak and Lewis, Richard L and Singh, Satinder},
+  booktitle={Advances in Neural Information Processing Systems},
+  pages={2863--2871},
+  year={2015}
+}
+
+@article{kurutach2018modeltrpo,
+  title={Model-ensemble trust-region policy optimization},
+  author={Kurutach, Thanard and Clavera, Ignasi and Duan, Yan and Tamar, Aviv and Abbeel, Pieter},
+  journal={arXiv preprint arXiv:1802.10592},
+  year={2018}
+}
+
+@inproceedings{kalweit2017modelddpg,
+  title={Uncertainty-driven Imagination for Continuous Deep Reinforcement Learning},
+  author={Kalweit, Gabriel and Boedecker, Joschka},
+  booktitle={Conference on Robot Learning},
+  pages={195--206},
+  year={2017}
+}
+
+@inproceedings{pathak2017mario,
+  title={Curiosity-driven exploration by self-supervised prediction},
+  author={Pathak, Deepak and Agrawal, Pulkit and Efros, Alexei A and Darrell, Trevor},
+  booktitle={International Conference on Machine Learning (ICML)},
+  volume={2017},
+  year={2017}
+}
+
+@inproceedings{chung2015vrnn,
+  title={A recurrent latent variable model for sequential data},
+  author={Chung, Junyoung and Kastner, Kyle and Dinh, Laurent and Goel, Kratarth and Courville, Aaron C and Bengio, Yoshua},
+  booktitle={Advances in neural information processing systems},
+  pages={2980--2988},
+  year={2015}
+}
+
+@inproceedings{van2017vq,
+  title={Neural discrete representation learning},
+  author={van den Oord, Aaron and Vinyals, Oriol and others},
+  booktitle={Advances in Neural Information Processing Systems},
+  pages={6309--6318},
+  year={2017}
+}
+
+@article{hoffman2013svi,
+  title={Stochastic variational inference},
+  author={Hoffman, Matthew D and Blei, David M and Wang, Chong and Paisley, John},
+  journal={The Journal of Machine Learning Research},
+  volume={14},
+  number={1},
+  pages={1303--1347},
+  year={2013},
+  publisher={JMLR. org}
+}
+
+@phdthesis{richards2005mpc,
+  title={Robust constrained model predictive control},
+  author={Richards, Arthur George},
+  year={2005},
+  school={Massachusetts Institute of Technology}
+}
+
+@article{rubinstein1997cem,
+  title={Optimization of computer simulation models with rare events},
+  author={Rubinstein, Reuven Y},
+  journal={European Journal of Operational Research},
+  volume={99},
+  number={1},
+  pages={89--112},
+  year={1997},
+  publisher={Elsevier}
+}
+@inproceedings{hansen1996cma,
+  title={Adapting arbitrary normal mutation distributions in evolution strategies: The covariance matrix adaptation},
+  author={Hansen, Nikolaus and Ostermeier, Andreas},
+  booktitle={Evolutionary Computation, 1996., Proceedings of IEEE International Conference on},
+  pages={312--317},
+  year={1996},
+  organization={IEEE}
+}
+@article{tassa2018dmcontrol,
+  title={DeepMind Control Suite},
+  author={Tassa, Yuval and Doron, Yotam and Muldal, Alistair and Erez, Tom and Li, Yazhe and Casas, Diego de Las and Budden, David and Abdolmaleki, Abbas and Merel, Josh and Lefrancq, Andrew and others},
+  journal={arXiv preprint arXiv:1801.00690},
+  year={2018}
+}
+@article{mackay1992infogain,
+  title={Information-based objective functions for active data selection},
+  author={MacKay, David JC},
+  journal={Neural computation},
+  volume={4},
+  number={4},
+  pages={590--604},
+  year={1992},
+  publisher={MIT Press}
+}
+@article{wayne2018merlin,
+  title={Unsupervised Predictive Memory in a Goal-Directed Agent},
+  author={Wayne, Greg and Hung, Chia-Chun and Amos, David and Mirza, Mehdi and Ahuja, Arun and Grabska-Barwinska, Agnieszka and Rae, Jack and Mirowski, Piotr and Leibo, Joel Z and Santoro, Adam and others},
+  journal={arXiv preprint arXiv:1803.10760},
+  year={2018}
+}
+@article{henaff2017planbybackprop,
+  author    = {Mikael Henaff and William F. Whitney and Yann LeCun},
+  title     = {Model-Based Planning in Discrete Action Spaces},
+  journal   = {CoRR},
+  volume    = {abs/1705.07177},
+  year      = {2017},
+  url       = {http://arxiv.org/abs/1705.07177},
+  archivePrefix = {arXiv},
+  eprint    = {1705.07177},
+  timestamp = {Wed, 07 Jun 2017 14:42:08 +0200},
+  biburl    = {https://dblp.org/rec/bib/journals/corr/HenaffWL17},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+@article{gemici2017temporalmemory,
+  title={Generative Temporal Models with Memory},
+  author={Gemici, Mevlana and Hung, Chia-Chun and Santoro, Adam and Wayne, Greg and Mohamed, Shakir and Rezende, Danilo J and Amos, David and Lillicrap, Timothy},
+  journal={arXiv preprint arXiv:1702.04649},
+  year={2017}
+}
+@inproceedings{higgins2016beta,
+  title={beta-vae: Learning basic visual concepts with a constrained variational framework},
+  author={Higgins, Irina and Matthey, Loic and Pal, Arka and Burgess, Christopher and Glorot, Xavier and Botvinick, Matthew and Mohamed, Shakir and Lerchner, Alexander},
+  booktitle={International Conference on Learning Representations},
+  year={2016}
+}
+@article{kingma2014adam,
+  title={Adam: A method for stochastic optimization},
+  author={Kingma, Diederik P and Ba, Jimmy},
+  journal={arXiv preprint arXiv:1412.6980},
+  year={2014}
+}
+@article{wayne2018unsupervised,
+  title={Unsupervised Predictive Memory in a Goal-Directed Agent},
+  author={Wayne, Greg and Hung, Chia-Chun and Amos, David and Mirza, Mehdi and Ahuja, Arun and Grabska-Barwinska, Agnieszka and Rae, Jack and Mirowski, Piotr and Leibo, Joel Z and Santoro, Adam and others},
+  journal={arXiv preprint arXiv:1803.10760},
+  year={2018}
+}
+@article{chiappa2017recurrent,
+  title={Recurrent environment simulators},
+  author={Chiappa, Silvia and Racaniere, S{\'e}bastien and Wierstra, Daan and Mohamed, Shakir},
+  journal={arXiv preprint arXiv:1704.02254},
+  year={2017}
+}
+@inproceedings{mnih2016a3c,
+  title={Asynchronous methods for deep reinforcement learning},
+  author={Mnih, Volodymyr and Badia, Adria Puigdomenech and Mirza, Mehdi and Graves, Alex and Lillicrap, Timothy and Harley, Tim and Silver, David and Kavukcuoglu, Koray},
+  booktitle={International Conference on Machine Learning},
+  pages={1928--1937},
+  year={2016}
+}
+@article{schulman2017ppo,
+  title={Proximal policy optimization algorithms},
+  author={Schulman, John and Wolski, Filip and Dhariwal, Prafulla and Radford, Alec and Klimov, Oleg},
+  journal={arXiv preprint arXiv:1707.06347},
+  year={2017}
+}
+@article{hafner2017tfagents,
+  title={TensorFlow Agents: Efficient Batched Reinforcement Learning in TensorFlow},
+  author={Hafner, Danijar and Davidson, James and Vanhoucke, Vincent},
+  journal={arXiv preprint arXiv:1709.02878},
+  year={2017}
+}
+@article{barth2018d4pg,
+  title={Distributed Distributional Deterministic Policy Gradients},
+  author={Barth-Maron, Gabriel and Hoffman, Matthew W and Budden, David and Dabney, Will and Horgan, Dan and Muldal, Alistair and Heess, Nicolas and Lillicrap, Timothy},
+  journal={arXiv preprint arXiv:1804.08617},
+  year={2018}
+}
+@inproceedings{alemi18fixing,
+  title={Fixing a Broken ELBO},
+  author={Alemi, Alexander A and Poole, Ben and Fischer, Ian and Dillon, Joshua V and Saurous, Rif A and Murphy, Kevin},
+  year={2018},
+  booktitle={Proceedings of the 35th International Conference on Machine Learning (ICML-18)}
+}
+@article{szegedy2013intriguing,
+  title={Intriguing properties of neural networks},
+  author={Szegedy, Christian and Zaremba, Wojciech and Sutskever, Ilya and Bruna, Joan and Erhan, Dumitru and Goodfellow, Ian and Fergus, Rob},
+  journal={arXiv preprint arXiv:1312.6199},
+  year={2013}
+}
+@article{chua2018deep,
+   author = {{Chua}, K. and {Calandra}, R. and {McAllister}, R. and {Levine}, S.},
+    title = "{Deep Reinforcement Learning in a Handful of Trials using Probabilistic Dynamics Models}",
+  journal = {ArXiv e-prints},
+archivePrefix = "arXiv",
+   eprint = {1805.12114},
+ primaryClass = "cs.LG",
+ keywords = {Computer Science - Learning, Computer Science - Artificial Intelligence, Computer Science - Robotics, Statistics - Machine Learning},
+     year = 2018,
+    month = may,
+}
+@article{karl2016dvbf,
+  title={Deep variational bayes filters: Unsupervised learning of state space models from raw data},
+  author={Karl, Maximilian and Soelch, Maximilian and Bayer, Justin and van der Smagt, Patrick},
+  journal={arXiv preprint arXiv:1605.06432},
+  year={2016}
+}
+@article{krishnan2015deepkalman,
+  title={Deep kalman filters},
+  author={Krishnan, Rahul G and Shalit, Uri and Sontag, David},
+  journal={arXiv preprint arXiv:1511.05121},
+  year={2015}
+}
+@article{gregor2018tdvae,
+  title={Temporal Difference Variational Auto-Encoder},
+  author={Gregor, Karol and Besse, Frederic},
+  journal={arXiv preprint arXiv:1806.03107},
+  year={2018}
+}
+@article{chua2018pets,
+  title={Deep Reinforcement Learning in a Handful of Trials using Probabilistic Dynamics Models},
+  author={Chua, Kurtland and Calandra, Roberto and McAllister, Rowan and Levine, Sergey},
+  journal={arXiv preprint arXiv:1805.12114},
+  year={2018}
+}
+@article{buckman2018steve,
+  title={Sample-Efficient Reinforcement Learning with Stochastic Ensemble Value Expansion},
+  author={Buckman, Jacob and Hafner, Danijar and Tucker, George and Brevdo, Eugene and Lee, Honglak},
+  journal={arXiv preprint arXiv:1807.01675},
+  year={2018}
+}
+@article{doerr2018prssm,
+  title={Probabilistic Recurrent State-Space Models},
+  author={Doerr, Andreas and Daniel, Christian and Schiegg, Martin and Nguyen-Tuong, Duy and Schaal, Stefan and Toussaint, Marc and Trimpe, Sebastian},
+  journal={arXiv preprint arXiv:1801.10395},
+  year={2018}
+}
+@inproceedings{lamb2016professor,
+  title={Professor forcing: A new algorithm for training recurrent networks},
+  author={Lamb, Alex M and GOYAL, Anirudh Goyal ALIAS PARTH and Zhang, Ying and Zhang, Saizheng and Courville, Aaron C and Bengio, Yoshua},
+  booktitle={Advances In Neural Information Processing Systems},
+  pages={4601--4609},
+  year={2016}
+}
+@article{srinivas2018upn,
+  title={Universal Planning Networks},
+  author={Srinivas, Aravind and Jabri, Allan and Abbeel, Pieter and Levine, Sergey and Finn, Chelsea},
+  journal={arXiv preprint arXiv:1804.00645},
+  year={2018}
+}
+@inproceedings{nair2010relu,
+  title={Rectified linear units improve restricted boltzmann machines},
+  author={Nair, Vinod and Hinton, Geoffrey E},
+  booktitle={Proceedings of the 27th international conference on machine learning (ICML-10)},
+  pages={807--814},
+  year={2010}
+}
+@article{cho2014gru,
+  title={Learning phrase representations using RNN encoder-decoder for statistical machine translation},
+  author={Cho, Kyunghyun and Van Merri{\"e}nboer, Bart and Gulcehre, Caglar and Bahdanau, Dzmitry and Bougares, Fethi and Schwenk, Holger and Bengio, Yoshua},
+  journal={arXiv preprint arXiv:1406.1078},
+  year={2014}
+}
+@inproceedings{bengio2015scheduled,
+  title={Scheduled sampling for sequence prediction with recurrent neural networks},
+  author={Bengio, Samy and Vinyals, Oriol and Jaitly, Navdeep and Shazeer, Noam},
+  booktitle={Advances in Neural Information Processing Systems},
+  pages={1171--1179},
+  year={2015}
+}
+@inproceedings{talvitie2014hallucinated,
+  title={Model Regularization for Stable Sample Rollouts.},
+  author={Talvitie, Erik},
+  booktitle={UAI},
+  pages={780--789},
+  year={2014}
+}
+@inproceedings{venkatraman2015dad,
+  title={Improving Multi-Step Prediction of Learned Time Series Models.},
+  author={Venkatraman, Arun and Hebert, Martial and Bagnell, J Andrew},
+  booktitle={AAAI},
+  pages={3024--3030},
+  year={2015}
+}
+@article{igl2018dvrl,
+  title={Deep Variational Reinforcement Learning for POMDPs},
+  author={Igl, Maximilian and Zintgraf, Luisa and Le, Tuan Anh and Wood, Frank and Whiteson, Shimon},
+  journal={arXiv preprint arXiv:1806.02426},
+  year={2018}
+}
+@article{silver2017alphago,
+  title={Mastering the game of Go without human knowledge},
+  author={Silver, David and Schrittwieser, Julian and Simonyan, Karen and Antonoglou, Ioannis and Huang, Aja and Guez, Arthur and Hubert, Thomas and Baker, Lucas and Lai, Matthew and Bolton, Adrian and others},
+  journal={Nature},
+  volume={550},
+  number={7676},
+  pages={354},
+  year={2017},
+  publisher={Nature Publishing Group}
+}
+@inproceedings{tassa2012mpc,
+  title={Synthesis and stabilization of complex behaviors through online trajectory optimization},
+  author={Tassa, Yuval and Erez, Tom and Todorov, Emanuel},
+  booktitle={Intelligent Robots and Systems (IROS), 2012 IEEE/RSJ International Conference on},
+  pages={4906--4913},
+  year={2012},
+  organization={IEEE}
+}
+@inproceedings{tassa2014mpc,
+  title={Control-limited differential dynamic programming},
+  author={Tassa, Yuval and Mansard, Nicolas and Todorov, Emo},
+  booktitle={Robotics and Automation (ICRA), 2014 IEEE International Conference on},
+  pages={1168--1175},
+  year={2014},
+  organization={IEEE}
+}
+@article{moravvcik2017deepstack,
+  title={Deepstack: Expert-level artificial intelligence in heads-up no-limit poker},
+  author={Moravčík, Matej and Schmid, Martin and Burch, Neil and Lisý, Viliam and Morrill, Dustin and Bard, Nolan and Davis, Trevor and Waugh, Kevin and Johanson, Michael and Bowling, Michael},
+  journal={Science},
+  volume={356},
+  number={6337},
+  pages={508--513},
+  year={2017},
+  publisher={American Association for the Advancement of Science}
+}
+@article{mnih2015dqn,
+  title={Human-level control through deep reinforcement learning},
+  author={Mnih, Volodymyr and Kavukcuoglu, Koray and Silver, David and Rusu, Andrei A and Veness, Joel and Bellemare, Marc G and Graves, Alex and Riedmiller, Martin and Fidjeland, Andreas K and Ostrovski, Georg and others},
+  journal={Nature},
+  volume={518},
+  number={7540},
+  pages={529},
+  year={2015},
+  publisher={Nature Publishing Group}
+}
+@article{moerland2017learning,
+  title={Learning multimodal transition dynamics for model-based reinforcement learning},
+  author={Moerland, Thomas M and Broekens, Joost and Jonker, Catholijn M},
+  journal={arXiv preprint arXiv:1705.00470},
+  year={2017}
+}
+@article{ebert2017visualmpc,
+  title={Self-supervised visual planning with temporal skip connections},
+  author={Ebert, Frederik and Finn, Chelsea and Lee, Alex X and Levine, Sergey},
+  journal={arXiv preprint arXiv:1710.05268},
+  year={2017}
+}
+@article{dillon2017tfd,
+  title={TensorFlow Distributions},
+  author={Dillon, Joshua V and Langmore, Ian and Tran, Dustin and Brevdo, Eugene and Vasudevan, Srinivas and Moore, Dave and Patton, Brian and Alemi, Alex and Hoffman, Matt and Saurous, Rif A},
+  journal={arXiv preprint arXiv:1711.10604},
+  year={2017}
+}
+@inproceedings{agrawal2016poking,
+  title={Learning to poke by poking: Experiential learning of intuitive physics},
+  author={Agrawal, Pulkit and Nair, Ashvin V and Abbeel, Pieter and Malik, Jitendra and Levine, Sergey},
+  booktitle={Advances in Neural Information Processing Systems},
+  pages={5074--5082},
+  year={2016}
+}
+@inproceedings{bellemare2016actiongap,
+  title={Increasing the Action Gap: New Operators for Reinforcement Learning.},
+  author={Bellemare, Marc G and Ostrovski, Georg and Guez, Arthur and Thomas, Philip S and Munos, R{\'e}mi},
+  booktitle={AAAI},
+  pages={1476--1483},
+  year={2016}
+}
+@article{kingma2018glow,
+  title={Glow: Generative flow with invertible 1x1 convolutions},
+  author={Kingma, Diederik P and Dhariwal, Prafulla},
+  journal={arXiv preprint arXiv:1807.03039},
+  year={2018}
+}
+@article{ebert2018foresight,
+  title={Visual Foresight: Model-Based Deep Reinforcement Learning for Vision-Based Robotic Control},
+  author={Ebert, Frederik and Finn, Chelsea and Dasari, Sudeep and Xie, Annie and Lee, Alex and Levine, Sergey},
+  journal={arXiv preprint arXiv:1812.00568},
+  year={2018}
+}
+@inproceedings{krishnan2017ssmelbo,
+  title={Structured Inference Networks for Nonlinear State Space Models.},
+  author={Krishnan, Rahul G and Shalit, Uri and Sontag, David},
+  booktitle={AAAI},
+  pages={2101--2109},
+  year={2017}
+}
+</script>
+<script src="lib/blazy.js"></script>
+<script>
+  // blazy code
+  var bLazy = new Blazy({
+    success: function(){
+      updateCounter();
+    }
+  });
+
+  // not needed, only here to illustrate amount of loaded images
+  var imageLoaded = 0;
+
+  function updateCounter() {
+    imageLoaded++;
+    console.log("blazy image loaded: "+imageLoaded);
+  }
+</script>
