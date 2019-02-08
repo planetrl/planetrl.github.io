@@ -8,10 +8,6 @@ ______
 
 Planning is a natural and powerful approach to decision making problems with known dynamics, such as game playing and simulated robot control <dt-cite key="tassa2012mpc,silver2017alphago,moravvcik2017deepstack"></dt-cite>. To plan in unknown environments, the agent needs to learn the dynamics from experience. Learning dynamics models that are accurate enough for planning has been a long-standing challenge. Key difficulties include model inaccuracies, accumulating errors of multi-step predictions, failure to capture multiple possible futures, and overconfident predictions outside of the training distribution.
 
-Planning using learned models offers several benefits over model-free reinforcement learning. First, model-based planning can be more data efficient because it leverages a richer training signal and does not require propagating rewards through Bellman backups. Moreover, planning carries the promise of increasing performance just by increasing the computational budget for searching for actions, as shown by <dt-cite key="silver2017alphago">Silver et al.</dt-cite>. Finally, learned dynamics can be independent of any specific task and thus have the potential to transfer well to other tasks in the environment.
-
-Recent work has shown promise in learning the dynamics of simple low-dimensional environments <dt-cite key="deisenroth2011pilco,gal2016deeppilco,amos2018awareness,chua2018pets,henaff2018planbybackprop"></dt-cite>. However, these approaches typically assume access to the underlying state of the world and the reward function, which may not be available in practice. In high-dimensional environments, we would like to learn the dynamics in a compact latent space to enable fast planning. The success of such latent models has been limited to simple tasks such as balancing cartpoles and controlling 2-link arms from dense rewards <dt-cite key="watter2015e2c,banijamali2017rce"></dt-cite>.
-
 <div style="text-align:left;">
 <video class="b-lazy" data-src="assets/mp4/planet_intro.mp4" type="video/mp4" autoplay muted playsinline loop style="display: block; margin: auto; width: 100%;" ></video>
 <figcaption>
@@ -19,6 +15,9 @@ PlaNet learns a latent dynamics model to predict future images and rewards. This
 </figcaption>
 </div>
 
+Planning using learned models offers several benefits over model-free reinforcement learning. First, model-based planning can be more data efficient because it leverages a richer training signal and does not require propagating rewards through Bellman backups. Moreover, planning carries the promise of increasing performance just by increasing the computational budget for searching for actions, as shown by <dt-cite key="silver2017alphago">Silver et al.</dt-cite>. Finally, learned dynamics can be independent of any specific task and thus have the potential to transfer well to other tasks in the environment.
+
+Recent work has shown promise in learning the dynamics of simple low-dimensional environments <dt-cite key="deisenroth2011pilco,gal2016deeppilco,amos2018awareness,chua2018pets,henaff2018planbybackprop"></dt-cite>. However, these approaches typically assume access to the underlying state of the world and the reward function, which may not be available in practice. In high-dimensional environments, we would like to learn the dynamics in a compact latent space to enable fast planning. The success of such latent models has been limited to simple tasks such as balancing cartpoles and controlling 2-link arms from dense rewards <dt-cite key="watter2015e2c,banijamali2017rce"></dt-cite>.
 
 In this paper, we propose the Deep Planning Network (PlaNet), a model-based agent that learns the environment dynamics from pixels and chooses actions through online planning in a compact latent space. To learn the dynamics, we use a transition model with both stochastic and deterministic components and train it using a generalized variational objective that encourages multi-step predictions. PlaNet solves continuous control tasks from pixels that are more difficult than those previously solved by planning with learned models.
 
