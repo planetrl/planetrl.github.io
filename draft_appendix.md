@@ -19,6 +19,6 @@ BibTeX citation
   year={2018}
 }</pre>
 
-## Open Source Code
+### Open Source Code
 
 We released our source code for reproducing this paper, and for future research to build upon. Please see this [GitHub repo](https://github.com/google-research/planet) for instructions.
