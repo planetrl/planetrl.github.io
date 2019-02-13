@@ -160,7 +160,7 @@ We conjecture that Equation 6 is also a lower bound on $\ln p(o_{1:T})$ based on
 
 Thus, Equation 10 bounds both the multi-step and one-step predictive distributions of the model. In the next paragraph, we alleviate the limitation that a particular $p_d$ does not consider the $d-1$ most recent observations at each time step and arrive at our final objective.
 
-**Latent overshooting**&nbsp;&nbsp; We introduced a bound on predictions of a given distance $d$. However, for planning we need accurate predictions not just for a fixed distance but for all distances up to the planning horizon. We introduce latent overshooting for this, an objective function for latent sequence models that generalizes the standard variational bound (\cref{eq:elbo}) to train the model on multi-step predictions of all distances $1 \leq d \leq D$,
+**Latent overshooting**&nbsp;&nbsp; We introduced a bound on predictions of a given distance $d$. However, for planning we need accurate predictions not just for a fixed distance but for all distances up to the planning horizon. We introduce latent overshooting for this, an objective function for latent sequence models that generalizes the standard variational bound (Equation 3) to train the model on multi-step predictions of all distances $1 \leq d \leq D$,
 
 <div style="text-align:left;">
 <img src="assets/fig/eq8.png" style="display: block; margin: auto; width: 75%;"/>
