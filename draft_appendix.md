@@ -12,7 +12,7 @@ For attribution in academic contexts, please cite this work as
 
 BibTeX citation
 
-<pre class="citation long">@article{hafner2018learning,
+<pre class="citation long">@article{hafner2018planet,
   title={Learning Latent Dynamics for Planning from Pixels},
   author={Hafner, Danijar and Lillicrap, Timothy and Fischer, Ian and Villegas, Ruben and Ha, David and Lee, Honglak and Davidson, James},
   journal={arXiv preprint arXiv:1811.04551},

@@ -198,12 +198,14 @@ pages={613--621},
   publisher={ACM}
 }
 
-@article{ha2018worldmodels,
-  title={World Models},
-  author={Ha, David and Schmidhuber, J{\"u}rgen},
-  journal={arXiv preprint arXiv:1803.10122},
-  url={https://worldmodels.github.io/},
-  year={2018}
+@incollection{ha2018worldmodels,
+  title = {Recurrent World Models Facilitate Policy Evolution},
+  author = {Ha, David and Schmidhuber, J{\"u}rgen},
+  booktitle = {Advances in Neural Information Processing Systems 31},
+  pages = {2451--2463},
+  year = {2018},
+  url = {https://papers.nips.cc/paper/7512-recurrent-world-models-facilitate-policy-evolution},
+  note="\url{https://worldmodels.github.io}",
 }
 
 @article{henaff2018planbybackprop,
@@ -661,4 +663,38 @@ archivePrefix = "arXiv",
     imageLoaded++;
     console.log("blazy image loaded: "+imageLoaded);
   }
+
+  // resize cover
+  function resize_cover() {
+    "use strict";
+
+    var screen_x = Math.max(window.innerWidth, 320);
+    var screen_y = Math.max(window.innerHeight, 320);
+
+    $('#cover_overlay_wrap').width(screen_x+'px');
+    $('#cover_overlay_wrap').height(screen_x/2+'px');
+
+    $('#cover_title').width(screen_x+'px');
+    $('#cover_title').height(screen_x/2+'px');
+
+  }
+
+  // fade in the scroll down arrow thing
+  function show_scrolldown() {
+    "use strict";
+    var screen_x = Math.max(window.innerWidth, 320);
+    var screen_y = Math.max(window.innerHeight, 320);
+    var threshold = 1.28; // only show if we can't initially see real title.
+    if (screen_y < threshold * screen_x) {
+      $('#scrolldowntag')
+        .delay(2000)
+        .queue(function (next) { 
+          $(this).css('opacity', '1'); 
+          next(); 
+        });
+    }
+  }
+
+  resize_cover();
+  show_scrolldown();
 </script>
