@@ -11,7 +11,7 @@ Planning is a natural and powerful approach to decision making problems with kno
 <div style="text-align:left;">
 <video class="b-lazy" data-src="assets/mp4/planet_intro.mp4" type="video/mp4" autoplay muted playsinline loop style="display: block; margin: auto; width: 100%;" ></video>
 <figcaption>
-PlaNet learns a latent dynamics model to predict future images and rewards. This encodes the idea that the future can be explained by a sequence of compact hidden states. For example, the arm of a robot is a long list of pixels in the image but predicting its movement requires only a few numbers, its position and velocity. A latent dynamics model can learn these compact states without any domain knowledge.
+PlaNet learns a world model from image inputs only and successfully leverages it for planning in latent space. The agent solves a variety of image-based control tasks, competing with advanced model-free agents in terms of final performance while being 5000% more data efficient on average.
 </figcaption>
 </div>
 
@@ -46,27 +46,13 @@ sequence of actions.<br>
 
 Key contributions of this work are summarized as follows:
 
-- **Planning in latent spaces**&nbsp;&nbsp; We solve a variety of tasks from the DeepMind control suite, shown in Figure 1, by learning a dynamics model and efficiently planning in its latent space. Our agent substantially outperforms the model-free A3C and in some cases D4PG algorithm in final performance, with on average 50x less environment interaction and similar computation time.
+- **Planning in latent spaces**&nbsp;&nbsp; We solve a variety of tasks from the DeepMind control suite, shown in Figure 1, by learning a dynamics model and efficiently planning in its latent space. Our agent substantially outperforms the model-free A3C and in some cases D4PG algorithm in final performance, with on average 50&times; less environment interaction and similar computation time.
 
 - **Recurrent state space model**&nbsp;&nbsp; We design a latent dynamics model with both deterministic and stochastic components <dt-cite key="buesing2018dssm,chung2015vrnn"></dt-cite>. Our experiments indicate having both components to be crucial for high planning performance.
 
 - **Latent overshooting**&nbsp;&nbsp; We generalize the standard variational bound to include multi-step predictions. Using only terms in latent space results in a fast and effective regularizer that improves long-term predictions and is compatible with any latent sequence model.
 
 ## Latent Space Planning
-
-<div style="text-align:left;">
-<img src="assets/fig/planning_in_latent_space.svg" style="margin: 0; width: 100%;"/>
-<figcaption>
-<b>Planning in Latent Space</b>
-</div>
-<div style="text-align:left;">
-<img src="assets/fig/learned_latent_dynamics_model.svg" style="margin: 0; width: 100%;"/>
-<figcaption>
-<b>Learned Latent Dynamics Model</b>
-<br/><br/>
-PlaNet models the world as a compact sequence of hidden states. For planning, we first encode the history of past images into the current state. From there, we efficiently predict future rewards for multiple action sequences in latent space. We execute the first action of the best sequence found and replan after observing the next image.
-</figcaption>
-</div>
 
 To solve unknown environments via planning, we need to model the environment dynamics from experience. PlaNet does so by iteratively collecting data using planning and training the dynamics model on the gathered data. In this section, we introduce notation for the environment and describe the general implementation of our model-based agent. In this section, we assume access to a learned dynamics model. Our design and training objective for this model are detailed later on in the *Recurrent State Space Model* and *Latent Overshooting* sections respectively.
 
@@ -82,7 +68,20 @@ To solve unknown environments via planning, we need to model the environment dyn
 
 where we assume a fixed initial state $s_0$ without loss of generality. The goal is to implement a policy $p(a_t|o_{\leq t},a_{\lt t})$ that maximizes the expected sum of rewards $E_{p}[ \sum_{\tau=t+1}^T p(r_\tau|s_\tau) ]$, where the expectation is over the distributions of the environment and the policy.
 
+<div style="text-align:left;">
+<img src="assets/fig/learned_latent_dynamics_model.svg" style="margin: 0; width: 100%;"/>
+<figcaption>
+In a latent dynamics model, the information of the input images is integrated into the hidden states (green) using the encoder network (grey trapezoids). The hidden state is then projected forward in time to predict future images (blue trapezoids) and rewards (blue rectangle).
+</figcaption>
+</div>
+
 **Model-based planning**&nbsp;&nbsp; PlaNet learns a transition model $p(s_t|s_{t-1},a_{t-1})$, observation model $p(o_t|s_t)$, and reward model $p(r_t|s_t)$ from previously experienced episodes (note italic letters for the model compared to upright letters for the true dynamics). The observation model provides a training signal but is not used for planning. We also learn an encoder $q(s_t|o_{\leq t},a_{\lt t})$ to infer an approximate belief over the current hidden state from the history using filtering. Given these components, we implement the policy as a planning algorithm that searches for the best sequence of future actions. We use model-predictive control (MPC) <dt-cite key="richards2005mpc"></dt-cite> to allow the agent to adapt its plan based on new observations, meaning we replan at each step. In contrast to model-free and hybrid reinforcement learning algorithms, we do not use a policy network.
+
+<div style="text-align:left;">
+<img src="assets/fig/planning_in_latent_space.svg" style="margin: 0; width: 100%;"/>
+<figcaption>
+For planning, we encode past images (gray trapezoid) into the current hidden state (green). From there, we efficiently predict future rewards for multiple action sequences. Note how the expensive image decoder (blue trapezoid) from the previous figure is gone. We then execute the first action of the best sequence found (red box).
+</div>
 
 **Experience collection**&nbsp;&nbsp; Since the agent may not initially visit all parts of the environment, we need to iteratively collect new experience and refine the dynamics model. We do so by planning with the partially trained model, as shown in Algorithm 1. Starting from a small amount of $S$ seed episodes collected under random actions, we train the model and add one additional episode to the data set every $C$ update steps. When collecting episodes for the data set, we add small Gaussian exploration noise to the action. To reduce the planning horizon and provide a clearer learning signal to the model, we repeat each action $R$ times, as is common in reinforcement learning <dt-cite key="mnih2015dqn,mnih2016a3c"></dt-cite>.
 
@@ -169,13 +168,7 @@ The case $d=1$ recovers the one-step transitions used in the original model. Giv
 
 For the derivation, please see Equation 10 in the appendix. Maximizing this objective trains the multi-step predictive distribution. This reflects the fact that during planning, the model makes predictions without having access to all the preceding observations.
 
-We conjecture that Equation 6 is also a lower bound on $\ln p(o_{1:T})$ based on the data processing inequality. Since the latent state sequences is Markovian, for $d\geq 1$ we have
-
-<div style="text-align:left;">
-<img src="assets/fig/eq7.png" style="display: block; margin: auto; width: 75%;"/>
-</div>
-
-Thus, Equation 10 bounds both the multi-step and one-step predictive distributions of the model. In the next paragraph, we alleviate the limitation that a particular $p_d$ does not consider the $d-1$ most recent observations at each time step and arrive at our final objective.
+We conjecture that Equation 6 is also a lower bound on $\ln p(o_{1:T})$ based on the data processing inequality. Since the latent state sequence is Markovian, for $d\geq 1$ we have $I(s_t;s_{t-d})\leq I(s_t;s_{t-1})$ and thus $E[\ln p_d(o_{1:T})]\leq E[\ln p(o_{1:T})]$. Hence, every bound on the multi-step predictive distribution is also a bound on the one-step predictive distribution in expectation over the data set. For details, please see the appendix in the PDF. In the next paragraph, we alleviate the limitation that a particular $p_d$ only trains predictions of one distance and arrive at our final objective.
 
 **Latent overshooting**&nbsp;&nbsp; We introduced a bound on predictions of a given distance $d$. However, for planning we need accurate predictions not just for a fixed distance but for all distances up to the planning horizon. We introduce latent overshooting for this, an objective function for latent sequence models that generalizes the standard variational bound (Equation 3) to train the model on multi-step predictions of all distances $1 \leq d \leq D$,
 
@@ -193,7 +186,7 @@ We evaluate PlaNet on six continuous control tasks from pixels. We explore multi
 <iframe width="100%" height="100%" src="https://www.youtube.com/embed/tZk1eof_VNA" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </p>
 
-For our evaluation, we consider six image-based continuous control tasks of the DeepMind control suite <dt-cite key="tassa2018dmcontrol">Tassa et al.</dt-cite>, shown in Figure 1. These environments provide qualitatively different challenges. The cartpole swingup task requires a long planning horizon and to memorize the cart when it is out of view, the finger spinning task includes contact dynamics between the finger and the object, the cheetah tasks exhibit larger state and action spaces, the cup task only has a sparse reward for when the ball is caught, and the walker is challenging because the robot first has to stand up and then walk, resulting in collisions with the ground that are difficult to predict. In all tasks, the only observations are third-person camera images of size 64x64x3 pixels.
+For our evaluation, we consider six image-based continuous control tasks of the DeepMind control suite <dt-cite key="tassa2018dmcontrol">Tassa et al.</dt-cite>, shown in Figure 1. These environments provide qualitatively different challenges. The cartpole swingup task requires a long planning horizon and to memorize the cart when it is out of view, the finger spinning task includes contact dynamics between the finger and the object, the cheetah tasks exhibit larger state and action spaces, the cup task only has a sparse reward for when the ball is caught, and the walker is challenging because the robot first has to stand up and then walk, resulting in collisions with the ground that are difficult to predict. In all tasks, the only observations are third-person camera images of size 64&times;64&times;3 pixels.
 
 <div style="text-align:left;">
 <img src="assets/fig/result_model.png" style="display: block; margin: auto; width: 100%;"/>
@@ -248,7 +241,7 @@ Relatively few works have demonstrated successful planning from pixels using lea
 
 ## Discussion
 
-In this work, we present PlaNet, a model-based agent that learns a latent dynamics model from image observations and chooses actions by fast planning in latent space. To enable accurate long-term predictions, we design a model with both stochastic and deterministic paths and train it using our proposed latent overshooting objective. We show that our agent is successful at several continuous control tasks from image observations, reaching performance that is comparable to the best model-free algorithms while using 50x fewer episodes and similar training time. The results show that learning latent dynamics models for planning in image domains is a promising approach.
+In this work, we present PlaNet, a model-based agent that learns a latent dynamics model from image observations and chooses actions by fast planning in latent space. To enable accurate long-term predictions, we design a model with both stochastic and deterministic paths and train it using our proposed latent overshooting objective. We show that our agent is successful at several continuous control tasks from image observations, reaching performance that is comparable to the best model-free algorithms while using 50&times; fewer episodes and similar training time. The results show that learning latent dynamics models for planning in image domains is a promising approach.
 
 Directions for future work include learning temporal abstraction instead of using a fixed action repeat, possibly through hierarchical models. To further improve final performance, one could learn a value function to approximate the sum of rewards beyond the planning horizon. Moreover, exploring gradient-based planners could increase computational efficiency of the agent. Our work provides a starting point for multi-task control by sharing the dynamics model.
 
