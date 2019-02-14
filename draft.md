@@ -25,14 +25,23 @@ In this paper, we propose the Deep Planning Network (PlaNet), a model-based agen
 <video class="b-lazy" data-src="assets/mp4/combined.mp4" type="video/mp4" autoplay muted playsinline loop style="display: block; margin: auto; width: 100%;" ></video>
 <img src="assets/fig/control_suite_caption.jpeg" style="display: block; margin: auto; width: 100%;"/>
 <figcaption>
-Figure 1: Image-based control domains used in our experiments. The figure shows agent observations before downscaling them to 64x64x3 pixels.<br/>
-(a) For the cartpole balance and swingup tasks, the camera is fixed so the cart can move out of sight.<br/>
-(b) The finger spinning task includes contacts between the finger and the object.<br/>
-(c) The cheetah running task includes both contacts and a larger number of joints.<br/>
-(d) The cup task has a sparse reward that is only given once the ball is caught.<br/>
-(e) The walker task requires balance and predicting difficult interactions with the ground.
+Figure 1: Image-based control domains used in our experiments. The animation
+shows the image inputs as the agent is solving each task. The tasks test a
+variety of properties of our agent.
 </figcaption>
-<figcaption>PlaNet solves several control tasks from images in under 2000 attempts. The animation shows the image inputs as the agent is solving each task. The tasks include partial observability, contacts with the ground, sparse rewards for catching a ball, and controlling a challenging bipedal robot.</figcaption>
+<figcaption>
+(a) For cartpole the camera is fixed, so the cart can move out of sight. The
+agent thus must absorb and remember information over multiple frames.<br>
+(b) The finger spin task requires predicting two separate objects, as well as
+the interactions between them.<br>
+(c) The cheetah running task includes contacts with the ground that are
+difficult to predict precisely, calling for a model that can predict multiple
+possible futures.<br>
+(d) The cup task only provides a sparse reward signal once a ball is caught.
+This demands accurate predictions far into the future to plan a precise
+sequence of actions.<br>
+(e) The simulated walker robot starts off by lying on the ground, so the agent must first learn to stand up and then walk.
+</figcaption>
 </div>
 
 Key contributions of this work are summarized as follows:
@@ -46,8 +55,15 @@ Key contributions of this work are summarized as follows:
 ## Latent Space Planning
 
 <div style="text-align:left;">
-<img src="assets/fig/learned_latent_dynamics_model.svg" style="margin: 0; width: 50%;"/><img src="assets/fig/planning_in_latent_space.svg" style="margin: 0; width: 50%;"/>
-<figcaption><br/>
+<img src="assets/fig/planning_in_latent_space.svg" style="margin: 0; width: 100%;"/>
+<figcaption>
+<b>Planning in Latent Space</b>
+</div>
+<div style="text-align:left;">
+<img src="assets/fig/learned_latent_dynamics_model.svg" style="margin: 0; width: 100%;"/>
+<figcaption>
+<b>Learned Latent Dynamics Model</b>
+<br/><br/>
 PlaNet models the world as a compact sequence of hidden states. For planning, we first encode the history of past images into the current state. From there, we efficiently predict future rewards for multiple action sequences in latent space. We execute the first action of the best sequence found and replan after observing the next image.
 </figcaption>
 </div>
@@ -83,8 +99,11 @@ The next section introduces the latent dynamics model that the planner uses.
 <figcaption>Figure 2: Latent dynamics model designs. In this example, the model observes the first two time steps and predicts the third. Circles represent stochastic variables and squares deterministic variables. Solid lines denote the generative process and dashed lines the inference model.<br/>
 </figcaption>
 <figcaption>
-(a) Transitions in a recurrent neural network are purely deterministic. This prevents the model from capturing multiple futures and makes it easy for the planner to exploit inaccuracies.<br/>
-(b) Transitions in a state-space model are purely stochastic. This makes it difficult to remember information over multiple time steps.<br/>
+(a) Transitions in a recurrent neural network are purely deterministic. This
+prevents the model from capturing multiple futures and makes it easy for the
+planner to exploit inaccuracies.<br>
+(b) Transitions in a state-space model are purely stochastic. This makes it
+difficult to remember information over multiple time steps.<br>
 (c) We split the state into stochastic and deterministic parts, allowing the model to robustly learn to predict multiple futures.
 </figcaption>
 </div>
