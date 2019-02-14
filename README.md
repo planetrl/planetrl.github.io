@@ -19,6 +19,7 @@ This repo contains the source for the article.
 git clone https://github.com/planetrl/planetrl.github.io.git
 cd planetrl.github.io
 npm install
+chmod +x ./bin/*
 ```
 
 Modify text by editing `draft.md` -- this is where all of the content exists.

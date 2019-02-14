@@ -1,166 +1,20 @@
 <!doctype html>
-<meta charset="utf-8">
-<style>
-body {
-  overflow-x: hidden;
-}
-#cover_overlay_wrap {padding: 0;
-    margin: 0;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 50vw;
-}
-#cover_title {padding: 0;
-    margin: 0;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 50vw;
-}
-#cover_title_svg {padding: 0;
-    margin: 0;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-}
-.cover-instruction {
-  width: 100%;
-  height: 60px;
-  bottom: 10%;
-  position: absolute;
-  font-family: "Roboto","Helvetica Neue",Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  font-weight: 300;
-  color: #FFFFFF;
-}
-.scroll-down {
-  width: 80px;
-  height: 40px;
-  right: 30px;
-  bottom: 20px;
-  position: absolute;
-  font-family: "Roboto","Helvetica Neue",Helvetica,Arial,sans-serif;
-  font-size: 12px;
-  font-weight: 300;
-  color: #FFFFFF;
-  opacity: 0;
-  -webkit-transition: opacity 2s ease-in;
-  -moz-transition: opacity 2s ease-in;
-  -o-transition: opacity 2s ease-in;
-  -ms-transition: opacity 2s ease-in;
-  transition: opacity 2s ease-in;
-}
-.scroll-down span {
-  margin-top: 5px;
-  position: absolute;
-  left: 50%;
-  transform: translate(-100%, 0) rotate(45deg);
-  transform-origin: 100% 100%;
-  height: 2px;
-  width: 10px;
-  background: #FFFFFF;
-}
-.scroll-down span:nth-of-type(2) {
-  transform-origin: 0 100%;
-  transform: translate(0, 0) rotate(-45deg);
-}
-.spinner {
-  position: absolute;
-  height: 160px;
-  width: 160px;
-  -webkit-animation: rotation .6s infinite linear;
-  -moz-animation: rotation .6s infinite linear;
-  -o-animation: rotation .6s infinite linear;
-  animation: rotation .6s infinite linear;
-  border-left: 6px solid rgba(0, 174, 239, .15);
-  border-right: 6px solid rgba(0, 174, 239, .15);
-  border-bottom: 6px solid rgba(0, 174, 239, .15);
-  border-top: 6px solid rgba(0, 174, 239, .8);
-  border-radius: 100%;
-  top: calc(50% - 100px);
-  left: calc(50% - 80px);
-  right: auto;
-  bottom: auto;
-}
-
-@-webkit-keyframes rotation {
-  from {
-    -webkit-transform: rotate(0deg);
-  }
-  to {
-    -webkit-transform: rotate(359deg);
-  }
-}
-.transparent {
-  opacity: 0;
-}
-
-figcaption {
-  padding: 0.5em;
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 12px;
-  line-height: 1.5em;
-  text-align: left;
-}
-
-dt-article figcaption {
-  padding: 0.5em;
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 12px;
-  line-height: 1.5em;
-  text-align: left;
-}
-
-dt-article figcaption a {
-  color: rgba(0, 0, 0, 0.6);
-}
-
-dt-article figcaption b {
-  font-weight: 600;
-  color: rgba(0, 0, 0, 1.0);
-}
-
-*.unselectable {
-    -moz-user-select: -moz-none;
-    -khtml-user-select: none;
-    -webkit-user-select: none;
-    -o-user-select: none;
-    user-select: none;
-}
-*.svgunselectable {
-    -moz-user-select: -moz-none;
-    -khtml-user-select: none;
-    -webkit-user-select: none;
-    -o-user-select: none;
-    user-select: none;
-    background: none;
-    pointer-events: none;
-}
-</style>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learning Latent Dynamics for Planning from Pixels</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-  <!-- roboto font -->
   <link href='https://fonts.googleapis.com/css?family=Roboto:300' rel='stylesheet' type='text/css'>
-
   <meta name="theme-color" content="#ffffff" />
-
   <!-- Global site tag (gtag.js) - Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-133908598-1"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'UA-133908598-1');
   </script>
-
   <!-- SEO -->
-
   <meta property="og:title" content="Learning Latent Dynamics for Planning from Pixels" />
   <meta property="og:type" content="article" />
   <meta property="og:description" content="PlaNet solves control tasks from pixels by planning in latent space." />
@@ -173,53 +27,28 @@ dt-article figcaption b {
   <meta property="og:site_name" content="PlaNet solves control tasks from pixels by planning in latent space." />
   <meta name="twitter:image" content="https://planetrl.github.io/assets/img/planet_logo_square.jpeg" />
 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css">
+  <link rel="stylesheet" href="/style.css">
 </head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css">
+<body>
 
 <script src="lib/jquery-1.12.4.min.js"></script>
 <!--<script src="lib/mobile-detect.min.js"></script>-->
 <script src="lib/template.v1.js"></script>
-
 <script type="text/front-matter">
-  title: "Learning Latent Dynamics for Planning from Pixels"
-  description: ""
+title: "Learning Latent Dynamics for Planning from Pixels"
+description: ""
 </script>
-<body>
-<div style="text-align: center;">
-<video class="b-lazy" data-src="assets/mp4/multi.mp4" type="video/mp4" autoplay
-  muted playsinline loop style="display: block; margin: auto; width: 100%; filter:brightness(90%);" ></video>
 
-<table style="width: 100%;" cellspacing="0" cellpadding="0"><tr>
-<td width="100%"><figcaption style="text-align: center;">PlaNet solves control
-    tasks from images in 50x fewer episodes compared to model-free algorithms,
-    by planning in the latent space of a learned world model.
-<br/>
-Top: Behavior of our planning agent on tasks of the DeepMind control suite <dt-cite
-  key="tassa2018dmcontrol"></dt-cite>. Bottom: Open loop hallucinations
-generated by the learned model.</figcaption></td>
-</tr></table>
-
+<div class="cover">
+  <h1 class="unselectable">Learning Latent Dynamics <br>for Planning from Pixels</h1>
+  <video src="assets/mp4/multi.mp4" autoplay loop playsinline muted></video>
+  <div class="hint unselectable">scroll down</div>
 </div>
 
 <dt-article id="dtbody">
-
-<div id="cover_sketch" class="unselectable" style="text-align: center;"></div>
-<div id="cover_overlay_wrap" class="unselectable">
-  <div id="scrolldowntag" class="scroll-down" style="text-align: center;">
-    <div>scroll down</div>
-    <span></span>
-    <span></span>
-  </div>
-</div>
-
-<div id="cover_title" class="unselectable">
-  <img src="assets/img/planet_overlay.svg" id="cover_title_svg" class="svgunselectable"/>
-</div>
-
-<dt-byline class="l-page transparent"></dt-byline>
 <h1>Learning Latent Dynamics for <br/> Planning from Pixels</h1>
-<p></p>
-<dt-byline class="l-page" id="authors_section" hidden>
+<dt-byline class="l-page" id="authors_section">
 <div class="byline">
   <div class="authors">
     <div class="author">
