@@ -32,7 +32,8 @@ body {
   position: absolute;
   width: 100%;
   text-align: center;
-  top: 1em;
+  top: 14%;
+  margin: 0;
   font-size: 4em;
   line-height: 1.2em;
   font-family: 'Roboto', sans-serif;
@@ -42,10 +43,15 @@ body {
 .cover .hint {
   position: absolute;
   bottom: 2.5em;
-  right: 3em;
+  /* right: 3em; */
+  left: 50%;
   font-size: 1.2em;
   font-family: 'Roboto', sans-serif;
   color: #fff;
+  -ms-transform: translateX(-50%);
+  -moz-transform: translateX(-50%);
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
 }
 
 .cover div:after {
