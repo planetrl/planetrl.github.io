@@ -63,18 +63,18 @@ body {
   transform: rotate(45deg);
 }
 
-figcaption {
-  padding: 0.5em;
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 12px;
-  line-height: 1.5em;
+.figure {
   text-align: left;
 }
 
-dt-article figcaption {
+.figure > * {
+  margin: auto;
+}
+
+figcaption {
   padding: 0.5em;
   color: rgba(0, 0, 0, 0.6);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.5em;
   text-align: left;
 }

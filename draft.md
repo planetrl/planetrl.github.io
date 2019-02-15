@@ -8,8 +8,8 @@ ______
 
 Planning is a natural and powerful approach to decision making problems with known dynamics, such as game playing and simulated robot control <dt-cite key="tassa2012mpc,silver2017alphago,moravvcik2017deepstack"></dt-cite>. To plan in unknown environments, the agent needs to learn the dynamics from experience. Learning dynamics models that are accurate enough for planning has been a long-standing challenge. Key difficulties include model inaccuracies, accumulating errors of multi-step predictions, failure to capture multiple possible futures, and overconfident predictions outside of the training distribution.
 
-<div style="text-align:left;">
-<video class="b-lazy" data-src="assets/mp4/planet_intro.mp4" type="video/mp4" autoplay muted playsinline loop style="display: block; margin: auto; width: 100%;" ></video>
+<div class="figure">
+<video class="b-lazy" data-src="assets/mp4/planet_intro.mp4" type="video/mp4" autoplay muted playsinline loop style="display: block; width: 100%;" ></video>
 <figcaption>
 PlaNet learns a world model from image inputs only and successfully leverages it for planning in latent space. The agent solves a variety of image-based control tasks, competing with advanced model-free agents in terms of final performance while being 5000% more data efficient on average.
 </figcaption>
@@ -21,9 +21,9 @@ Recent work has shown promise in learning the dynamics of simple low-dimensional
 
 In this paper, we propose the Deep Planning Network (PlaNet), a model-based agent that learns the environment dynamics from pixels and chooses actions through online planning in a compact latent space. To learn the dynamics, we use a transition model with both stochastic and deterministic components and train it using a generalized variational objective that encourages multi-step predictions. PlaNet solves continuous control tasks from pixels that are more difficult than those previously solved by planning with learned models.
 
-<div style="text-align:left;">
-<video class="b-lazy" data-src="assets/mp4/combined.mp4" type="video/mp4" autoplay muted playsinline loop style="display: block; margin: auto; width: 100%;" ></video>
-<img src="assets/fig/control_suite_caption.jpeg" style="display: block; margin: auto; width: 100%;"/>
+<div class="figure">
+<video class="b-lazy" data-src="assets/mp4/combined.mp4" type="video/mp4" autoplay muted playsinline loop style="display: block; width: 100%;" ></video>
+<img src="assets/fig/control_suite_caption.jpeg" style="display: block; width: 100%;"/>
 <figcaption>
 Figure 1: Image-based control domains used in our experiments. The animation
 shows the image inputs as the agent is solving each task. The tasks test a
@@ -56,10 +56,6 @@ Key contributions of this work are summarized as follows:
 
 To solve unknown environments via planning, we need to model the environment dynamics from experience. PlaNet does so by iteratively collecting data using planning and training the dynamics model on the gathered data. In this section, we introduce notation for the environment and describe the general implementation of our model-based agent. In this section, we assume access to a learned dynamics model. Our design and training objective for this model are detailed later on in the *Recurrent State Space Model* and *Latent Overshooting* sections respectively.
 
-<div style="text-align:left;">
-<img src="assets/fig/planet_algorithm.png" style="display: block; margin: auto; width: 75%;"/>
-</div>
-
 **Problem setup**&nbsp;&nbsp; Since individual image observations generally do not reveal the full state of the environment, we consider a partially observable Markov decision process (POMDP). We define a discrete time step $t$, hidden states $s_t$, image observations $o_t$, continuous action vectors $a_t$, and scalar rewards $r_t$, that follow the stochastic dynamics:
 
 <div style="text-align:left;">
@@ -68,7 +64,7 @@ To solve unknown environments via planning, we need to model the environment dyn
 
 where we assume a fixed initial state $s_0$ without loss of generality. The goal is to implement a policy $p(a_t|o_{\leq t},a_{\lt t})$ that maximizes the expected sum of rewards $E_{p}[ \sum_{\tau=t+1}^T p(r_\tau|s_\tau) ]$, where the expectation is over the distributions of the environment and the policy.
 
-<div style="text-align:left;">
+<div class="figure">
 <img src="assets/fig/learned_latent_dynamics_model.svg" style="margin: 0; width: 100%;"/>
 <figcaption>
 In a latent dynamics model, the information of the input images is integrated into the hidden states (green) using the encoder network (grey trapezoids). The hidden state is then projected forward in time to predict future images (blue trapezoids) and rewards (blue rectangle).
@@ -77,7 +73,7 @@ In a latent dynamics model, the information of the input images is integrated in
 
 **Model-based planning**&nbsp;&nbsp; PlaNet learns a transition model $p(s_t|s_{t-1},a_{t-1})$, observation model $p(o_t|s_t)$, and reward model $p(r_t|s_t)$ from previously experienced episodes (note italic letters for the model compared to upright letters for the true dynamics). The observation model provides a training signal but is not used for planning. We also learn an encoder $q(s_t|o_{\leq t},a_{\lt t})$ to infer an approximate belief over the current hidden state from the history using filtering. Given these components, we implement the policy as a planning algorithm that searches for the best sequence of future actions. We use model-predictive control (MPC) <dt-cite key="richards2005mpc"></dt-cite> to allow the agent to adapt its plan based on new observations, meaning we replan at each step. In contrast to model-free and hybrid reinforcement learning algorithms, we do not use a policy network.
 
-<div style="text-align:left;">
+<div class="figure">
 <img src="assets/fig/planning_in_latent_space.svg" style="margin: 0; width: 100%;"/>
 <figcaption>
 For planning, we encode past images (gray trapezoid) into the current hidden state (green). From there, we efficiently predict future rewards for multiple action sequences. Note how the expensive image decoder (blue trapezoid) from the previous figure is gone. We then execute the first action of the best sequence found (red box).
@@ -85,14 +81,18 @@ For planning, we encode past images (gray trapezoid) into the current hidden sta
 
 **Experience collection**&nbsp;&nbsp; Since the agent may not initially visit all parts of the environment, we need to iteratively collect new experience and refine the dynamics model. We do so by planning with the partially trained model, as shown in Algorithm 1. Starting from a small amount of $S$ seed episodes collected under random actions, we train the model and add one additional episode to the data set every $C$ update steps. When collecting episodes for the data set, we add small Gaussian exploration noise to the action. To reduce the planning horizon and provide a clearer learning signal to the model, we repeat each action $R$ times, as is common in reinforcement learning <dt-cite key="mnih2015dqn,mnih2016a3c"></dt-cite>.
 
+<div class="figure">
+<img src="assets/fig/planet_algorithm.png" style="display: block; width: 75%;"/>
+</div>
+
 **Planning algorithm**&nbsp;&nbsp; We use the cross entropy method (CEM) <dt-cite key="rubinstein1997cem,chua2018pets"></dt-cite> to search for the best action sequence under the model, as outlined in Algorithm 2 in the appendix section of our paper. We decided on this algorithm because of its robustness and because it solved all considered tasks when given the true dynamics for planning. CEM is a population-based optimization algorithm that infers a distribution over action sequences that maximize the objective. As detailed in Algorithm 2, we initialize a time-dependent diagonal Gaussian belief over optimal action sequences $a_{t:t+H}\sim N(\mu_{t:t+H},\sigma^2_{t:t+H} I)$, where $t$ is the current time step of the agent and $H$ is the length of the planning horizon. Starting from zero mean and unit variance, we repeatedly sample $J$ candidate action sequences, evaluate them under the model, and re-fit the belief to the top $K$ action sequences. After $I$ iterations, the planner returns the mean of the belief for the current time step, $\mu_t$. Importantly, after receiving the next observation, the belief over action sequences starts from zero mean and unit variance again to avoid local optima.
 
 To evaluate a candidate action sequence under the learned model, we sample a state trajectory starting from the current state belief, and sum the mean rewards predicted along the sequence. Since we use a population-based optimizer, we found it sufficient to consider a single trajectory per action sequence and thus focus the computational budget on evaluating a larger number of different sequences. Because the reward is modeled as a function of the latent state, the planner can operate purely in latent space without generating images, which allows for fast evaluation of large batches of action sequences. The next section introduces the latent dynamics model that the planner uses.
 
 ## Recurrent State Space Model
 
-<div style="text-align:left;">
-<img src="assets/fig/rssm.png" style="display: block; margin: auto; width: 100%;"/>
+<div class="figure">
+<img src="assets/fig/rssm.png" style="display: block; width: 100%;"/>
 <figcaption>Figure 2: Latent dynamics model designs. In this example, the model observes the first two time steps and predicts the third. Circles represent stochastic variables and squares deterministic variables. Solid lines denote the generative process and dashed lines the inference model.<br/>
 </figcaption>
 <figcaption>
@@ -137,8 +137,8 @@ where $f(h_{t-1},s_{t-1},a_{t-1})$ is implemented as a recurrent neural network 
 
 ## Latent Overshooting
 
-<div style="text-align:left;">
-<img src="assets/fig/latent_overshooting.png" style="display: block; margin: auto; width: 100%;"/>
+<div class="figure">
+<img src="assets/fig/latent_overshooting.png" style="display: block; width: 100%;"/>
 <figcaption><br/>Figure 3: Unrolling schemes.
 The labels <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>s</mi><mrow><mi>i</mi><mi mathvariant="normal">∣</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">s_{i|j}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.7857599999999999em;vertical-align:-0.3551999999999999em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.18019999999999992em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">i</span><span class="mord mathrm">∣</span><span class="mord mathit" style="margin-right:0.05724em;">j</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span> are short for the state at time <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.65952em;"></span><span class="strut bottom" style="height:0.65952em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">i</span></span></span></span> conditioned on observations up to time <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.65952em;"></span><span class="strut bottom" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.05724em;">j</span></span></span></span>.
 Arrows pointing at shaded circles indicate log-likelihood loss terms. Wavy arrows indicate KL-divergence loss terms.<br/>
@@ -188,24 +188,24 @@ We evaluate PlaNet on six continuous control tasks from pixels. We explore multi
 
 For our evaluation, we consider six image-based continuous control tasks of the DeepMind control suite <dt-cite key="tassa2018dmcontrol">Tassa et al.</dt-cite>, shown in Figure 1. These environments provide qualitatively different challenges. The cartpole swingup task requires a long planning horizon and to memorize the cart when it is out of view, the finger spinning task includes contact dynamics between the finger and the object, the cheetah tasks exhibit larger state and action spaces, the cup task only has a sparse reward for when the ball is caught, and the walker is challenging because the robot first has to stand up and then walk, resulting in collisions with the ground that are difficult to predict. In all tasks, the only observations are third-person camera images of size 64&times;64&times;3 pixels.
 
-<div style="text-align:left;">
-<img src="assets/fig/result_model.png" style="display: block; margin: auto; width: 100%;"/>
+<div class="figure">
+<img src="assets/fig/result_model.png" style="display: block; width: 100%;"/>
 <figcaption>Figure 4: Comparison of PlaNet to model-free algorithms and other model designs. Plots show test performance for the number of collected episodes. We compare PlaNet using our RSSM to purely deterministic (RNN) and purely stochastic models (SSM). The RNN does not use latent overshooting, as it does not have stochastic latents. The lines show medians and the areas show percentiles 5 to 95 over 4 seeds and 10 rollouts.<br/>
 </figcaption>
 </div>
 
 **Comparison to model-free methods**&nbsp;&nbsp; Figure 4 compares the performance of PlaNet to the model-free algorithms reported by <dt-cite key="tassa2018dmcontrol">Tassa et al.</dt-cite>. Within 500 episodes, PlaNet outperforms the policy-gradient method A3C trained from proprioceptive states for 100,000 episodes, on all tasks. After 2,000 episodes, it achieves similar performance to D4PG, trained from images for 100,000 episodes, except for the finger task. On the cheetah running task, PlaNet surpasses the final performance of D4PG with a relative improvement of 19%. We refer to Table 1 for numerical results, which also includes the performance of CEM planning with the true dynamics of the simulator.
 
-<div style="text-align:left;">
-<img src="assets/fig/result_table.png" style="display: block; margin: auto; width: 100%;"/>
+<div class="figure">
+<img src="assets/fig/result_table.png" style="display: block; width: 100%;"/>
 <figcaption>Table 1: Comparison of PlaNet to the model-free algorithms A3C and D4PG reported by <dt-cite key="tassa2018dmcontrol">Tassa et al.</dt-cite>. The training curves for these are shown as orange lines in Figure~4 and as solid green lines in Figure~6 in their paper. From these, we estimate the number of episodes that D4PG takes to achieve the final performance of PlaNet to estimate the data efficiency gain. We further include CEM planning (H=12,I=10,J=1000,K=100) with the true simulator instead of learned dynamics as an estimated upper bound on performance. Numbers indicate mean final performance over 4 seeds.<br/>
 </figcaption>
 </div>
 
 **Model designs**&nbsp;&nbsp; Figure 4 additionally compares design choices of the dynamics model. We train PlaNet using our recurrent state-space model (RSSM), as well as versions with purely deterministic GRU <dt-cite key="cho2014gru"></dt-cite>, and purely stochastic state-space model (SSM). We observe the importance of both stochastic and deterministic elements in the transition function on all tasks. The stochastic component might help because the tasks are stochastic from the agent's perspective due to partial observability of the initial states. The noise might also add a safety margin to the planning objective that results in more robust action sequences. The deterministic part allows the model to remember information over many time steps and is even more important -- the agent does not learn without it.
 
-<div style="text-align:left;">
-<img src="assets/fig/result_agent.png" style="display: block; margin: auto; width: 100%;"/>
+<div class="figure">
+<img src="assets/fig/result_agent.png" style="display: block; width: 100%;"/>
 <figcaption>Figure 5: Comparison of agent designs. Plots show test performance for the number of collected episodes. We compare PlaNet using latent overshooting (Equation 8), a version with standard variational objective (Equation 3), and a version that trains from a random data set of 1000 episodes rather than collecting experience during training. The lines show medians and the areas show percentiles 5 to 95 over 4 seeds and 10 rollouts.<br/>
 </figcaption>
 </div>
@@ -214,8 +214,8 @@ For our evaluation, we consider six image-based continuous control tasks of the 
 
 **One agent all tasks**&nbsp;&nbsp; Additionally, we train a single PlaNet agent to solve all six tasks. The agent is placed into different environments without knowing the task, so it needs to infer the task from its image observations. Without changes to the hyper parameters, the multi-task agent achieves the same mean performance as individual agents. While learning slower on the cartpole tasks, it learns substantially faster and reaches a higher final performance on the challenging walker task that requires exploration.
 
-<div style="text-align:left;">
-<video class="b-lazy" data-src="assets/mp4/multi.mp4" type="video/mp4" autoplay muted playsinline loop style="display: block; margin: auto; width: 100%;" ></video>
+<div class="figure">
+<video class="b-lazy" data-src="assets/mp4/multi.mp4" type="video/mp4" autoplay muted playsinline loop style="display: block; width: 100%;" ></video>
 <figcaption>
 Video predictions of the PlaNet agent trained on multiple tasks. Holdout episodes are shown above with agent video predictions below. The agent observes the first 5 frames as context to infer the task and state and accurately predicts ahead for 50 steps given a sequence of actions.
 </figcaption>
