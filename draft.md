@@ -151,10 +151,10 @@ We conjecture that Equation 6 is also a lower bound on $\ln p(o_{1:T})$ based on
 **Latent overshooting**&nbsp;&nbsp; We introduced a bound on predictions of a given distance $d$. However, for planning we need accurate predictions not just for a fixed distance but for all distances up to the planning horizon. We introduce latent overshooting for this, an objective function for latent sequence models that generalizes the standard variational bound (Equation 3) to train the model on multi-step predictions of all distances $1 \leq d \leq D$,
 
 <div style="text-align:left;">
-<img src="assets/fig/eq8.png" style="display: block; margin: auto; width: 75%;"/>
+<img src="assets/fig/eq7.png" style="display: block; margin: auto; width: 75%;"/>
 </div>
 
-Latent overshooting can be interpreted as a regularizer in latent space that encourages consistency between one-step and multi-step predictions, which we know should be equivalent in expectation over the data set. We include weighting factors $\beta_d, d \in 1 \ldots D$ analogously to the $\beta$-VAE <dt-cite key="higgins2016beta"></dt-cite>. While we set all $\beta_{\gt 1}$ to the same value for simplicity, they could be chosen to let the model focus more on long-term or short-term predictions. In practice, we stop gradients of the posterior distributions for overshooting distances $d>1$, so that the multi-step predictions are trained towards the informed posteriors, but not the other way around. Equation 8 is the final objective function that we use to train the dynamics model of our agent.
+Latent overshooting can be interpreted as a regularizer in latent space that encourages consistency between one-step and multi-step predictions, which we know should be equivalent in expectation over the data set. We include weighting factors $\beta_d, d \in 1 \ldots D$ analogously to the $\beta$-VAE <dt-cite key="higgins2016beta"></dt-cite>. While we set all $\beta_{\gt 1}$ to the same value for simplicity, they could be chosen to let the model focus more on long-term or short-term predictions. In practice, we stop gradients of the posterior distributions for overshooting distances $d>1$, so that the multi-step predictions are trained towards the informed posteriors, but not the other way around. Equation 7 is the final objective function that we use to train the dynamics model of our agent.
 
 ## Experiments
 
@@ -216,7 +216,7 @@ Figure 8: Comparison of PlaNet to model-free algorithms and other model designs.
 <div class="figure">
 <img src="assets/fig/result_agent.png" style="display: block; width: 100%;"/>
 <figcaption>
-Figure 9: Comparison of agent designs. Plots show test performance for the number of collected episodes. We compare PlaNet using latent overshooting (Equation 8), a version with standard variational objective (Equation 3), and a version that trains from a random data set of 1000 episodes rather than collecting experience during training. The lines show medians and the areas show percentiles 5 to 95 over 4 seeds and 10 rollouts.<br/>
+Figure 9: Comparison of agent designs. Plots show test performance for the number of collected episodes. We compare PlaNet using latent overshooting (Equation 7), a version with standard variational objective (Equation 3), and a version that trains from a random data set of 1000 episodes rather than collecting experience during training. The lines show medians and the areas show percentiles 5 to 95 over 4 seeds and 10 rollouts.<br/>
 </figcaption>
 </div>
 
