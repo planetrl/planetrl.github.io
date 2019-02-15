@@ -58,7 +58,7 @@ To solve unknown environments via planning, we need to model the environment dyn
 <img src="assets/fig/eq1.png" style="display: block; margin: auto; width: 75%;"/>
 </div>
 
-where we assume a fixed initial state $s_0$ without loss of generality. The goal is to implement a policy $p(a_t|o_{\leq t},a_{\lt t})$ that maximizes the expected sum of rewards $E_{p}[ \sum_{\tau=t+1}^T p(r_\tau|s_\tau) ]$, where the expectation is over the distributions of the environment and the policy.
+where we assume a fixed initial state $s_0$ without loss of generality. The goal is to implement a policy $\mathrm{p}(a_t|o_{\leq t},a_{\lt t})$ that maximizes the expected sum of rewards $E_{\mathrm{p}}[ \sum_{\tau=t+1}^T \mathrm{p}(r_\tau|s_\tau) ]$, where the expectation is over the distributions of the environment and the policy.
 
 <div class="figure">
 <img src="assets/fig/learned_latent_dynamics_model.svg" style="margin: 0; width: 80%;"/>
