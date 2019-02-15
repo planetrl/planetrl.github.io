@@ -649,48 +649,14 @@ archivePrefix = "arXiv",
 </script>
 <script src="lib/blazy.js"></script>
 <script>
-  // blazy code
   var bLazy = new Blazy({
     success: function(){
       updateCounter();
     }
   });
-
-  // not needed, only here to illustrate amount of loaded images
   var imageLoaded = 0;
-
   function updateCounter() {
     imageLoaded++;
     console.log("blazy image loaded: "+imageLoaded);
   }
-
-  // resize cover
-  function resize_cover() {
-    "use strict";
-    // var screen_x = Math.max(window.innerWidth, 320);
-    // var screen_y = Math.max(window.innerHeight, 320);
-    // $('#cover_overlay_wrap').width(screen_x+'px');
-    // $('#cover_overlay_wrap').height(screen_x/2+'px');
-    // $('#cover_title').width(screen_x+'px');
-    // $('#cover_title').height(screen_x/2+'px');
-  }
-
-  // fade in the scroll down arrow thing
-  function show_scrolldown() {
-    "use strict";
-    // var screen_x = Math.max(window.innerWidth, 320);
-    // var screen_y = Math.max(window.innerHeight, 320);
-    // var threshold = 1.28; // only show if we can't initially see real title.
-    // if (screen_y < threshold * screen_x) {
-      $('#scrolldowntag')
-        .delay(1000)
-        .queue(function (next) {
-          $(this).css('opacity', '1');
-          next();
-        });
-    // }
-  }
-
-  resize_cover();
-  show_scrolldown();
 </script>

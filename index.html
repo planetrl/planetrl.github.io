@@ -35,10 +35,6 @@
 <script src="lib/jquery-1.12.4.min.js"></script>
 <!--<script src="lib/mobile-detect.min.js"></script>-->
 <script src="lib/template.v1.js"></script>
-<script type="text/front-matter">
-title: "Learning Latent Dynamics for Planning from Pixels"
-description: ""
-</script>
 
 <div class="cover">
   <h1 class="unselectable">Learning Latent Dynamics <br>for Planning from Pixels</h1>
@@ -47,6 +43,7 @@ description: ""
 </div>
 
 <dt-article id="dtbody">
+<dt-byline class="l-page transparent"></dt-byline>
 <h1>Learning Latent Dynamics for <br/> Planning from Pixels</h1>
 <dt-byline class="l-page" id="authors_section">
 <div class="byline">
@@ -86,8 +83,7 @@ description: ""
   </div>
   <div class="date">
     <div class="month">Download</div>
-    <div class="year" style="color: #FF6C00;"><a href="https://arxiv.org/pdf/1811.04551" target="_blank">PDF</a></div>
-  </div>
+    <div class="year" style="color: #FF6C00;"><a href="https://danijar.com/publications/2019-planet.pdf" target="_blank">PDF</a></div> </div>
 </div>
 </dt-byline>
 </dt-byline>
@@ -939,48 +935,14 @@ archivePrefix = "arXiv",
 </script>
 <script src="lib/blazy.js"></script>
 <script>
-  // blazy code
   var bLazy = new Blazy({
     success: function(){
       updateCounter();
     }
   });
-
-  // not needed, only here to illustrate amount of loaded images
   var imageLoaded = 0;
-
   function updateCounter() {
     imageLoaded++;
     console.log("blazy image loaded: "+imageLoaded);
   }
-
-  // resize cover
-  function resize_cover() {
-    "use strict";
-    // var screen_x = Math.max(window.innerWidth, 320);
-    // var screen_y = Math.max(window.innerHeight, 320);
-    // $('#cover_overlay_wrap').width(screen_x+'px');
-    // $('#cover_overlay_wrap').height(screen_x/2+'px');
-    // $('#cover_title').width(screen_x+'px');
-    // $('#cover_title').height(screen_x/2+'px');
-  }
-
-  // fade in the scroll down arrow thing
-  function show_scrolldown() {
-    "use strict";
-    // var screen_x = Math.max(window.innerWidth, 320);
-    // var screen_y = Math.max(window.innerHeight, 320);
-    // var threshold = 1.28; // only show if we can't initially see real title.
-    // if (screen_y < threshold * screen_x) {
-      $('#scrolldowntag')
-        .delay(1000)
-        .queue(function (next) {
-          $(this).css('opacity', '1');
-          next();
-        });
-    // }
-  }
-
-  resize_cover();
-  show_scrolldown();
 </script>
