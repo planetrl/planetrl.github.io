@@ -21,32 +21,9 @@ Recent work has shown promise in learning the dynamics of simple low-dimensional
 
 In this paper, we propose the Deep Planning Network (PlaNet), a model-based agent that learns the environment dynamics from pixels and chooses actions through online planning in a compact latent space. To learn the dynamics, we use a transition model with both stochastic and deterministic components and train it using a generalized variational objective that encourages multi-step predictions. PlaNet solves continuous control tasks from pixels that are more difficult than those previously solved by planning with learned models.
 
-<div class="figure">
-<video class="b-lazy" data-src="assets/mp4/combined.mp4" type="video/mp4" autoplay muted playsinline loop style="display: block; width: 100%;" ></video>
-<img src="assets/fig/control_suite_caption.jpeg" style="display: block; width: 100%;"/>
-<figcaption>
-Figure 2: Image-based control domains used in our experiments. The animation
-shows the image inputs as the agent is solving each task. The tasks test a
-variety of properties of our agent.
-</figcaption>
-<figcaption>
-(a) For cartpole the camera is fixed, so the cart can move out of sight. The
-agent thus must absorb and remember information over multiple frames.<br>
-(b) The finger spin task requires predicting two separate objects, as well as
-the interactions between them.<br>
-(c) The cheetah running task includes contacts with the ground that are
-difficult to predict precisely, calling for a model that can predict multiple
-possible futures.<br>
-(d) The cup task only provides a sparse reward signal once a ball is caught.
-This demands accurate predictions far into the future to plan a precise
-sequence of actions.<br>
-(e) The simulated walker robot starts off by lying on the ground, so the agent must first learn to stand up and then walk.
-</figcaption>
-</div>
-
 Key contributions of this work are summarized as follows:
 
-- **Planning in latent spaces**&nbsp;&nbsp; We solve a variety of tasks from the DeepMind control suite, shown in Figure 2, by learning a dynamics model and efficiently planning in its latent space. Our agent substantially outperforms the model-free A3C and in some cases D4PG algorithm in final performance, with on average 50&times; less environment interaction and similar computation time.
+- **Planning in latent spaces**&nbsp;&nbsp; We solve a variety of tasks from the DeepMind control suite, by learning a dynamics model and efficiently planning in its latent space. Our agent substantially outperforms the model-free A3C and in some cases D4PG algorithm in final performance, with on average 50&times; less environment interaction and similar computation time.
 
 - **Recurrent state space model**&nbsp;&nbsp; We design a latent dynamics model with both deterministic and stochastic components <dt-cite key="buesing2018dssm,chung2015vrnn"></dt-cite>. Our experiments indicate having both components to be crucial for high planning performance.
 
@@ -65,18 +42,18 @@ To solve unknown environments via planning, we need to model the environment dyn
 where we assume a fixed initial state $s_0$ without loss of generality. The goal is to implement a policy $p(a_t|o_{\leq t},a_{\lt t})$ that maximizes the expected sum of rewards $E_{p}[ \sum_{\tau=t+1}^T p(r_\tau|s_\tau) ]$, where the expectation is over the distributions of the environment and the policy.
 
 <div class="figure">
-<img src="assets/fig/learned_latent_dynamics_model.svg" style="margin: 0; width: 100%;"/>
+<img src="assets/fig/learned_latent_dynamics_model.svg" style="margin: 0; width: 80%;"/>
 <figcaption>
-Figure 3: In a latent dynamics model, the information of the input images is integrated into the hidden states (green) using the encoder network (grey trapezoids). The hidden state is then projected forward in time to predict future images (blue trapezoids) and rewards (blue rectangle).
+Figure 2: In a latent dynamics model, the information of the input images is integrated into the hidden states (green) using the encoder network (grey trapezoids). The hidden state is then projected forward in time to predict future images (blue trapezoids) and rewards (blue rectangle).
 </figcaption>
 </div>
 
 **Model-based planning**&nbsp;&nbsp; PlaNet learns a transition model $p(s_t|s_{t-1},a_{t-1})$, observation model $p(o_t|s_t)$, and reward model $p(r_t|s_t)$ from previously experienced episodes (note italic letters for the model compared to upright letters for the true dynamics). The observation model provides a training signal but is not used for planning. We also learn an encoder $q(s_t|o_{\leq t},a_{\lt t})$ to infer an approximate belief over the current hidden state from the history using filtering. Given these components, we implement the policy as a planning algorithm that searches for the best sequence of future actions. We use model-predictive control (MPC) <dt-cite key="richards2005mpc"></dt-cite> to allow the agent to adapt its plan based on new observations, meaning we replan at each step. In contrast to model-free and hybrid reinforcement learning algorithms, we do not use a policy network.
 
 <div class="figure">
-<img src="assets/fig/planning_in_latent_space.svg" style="margin: 0; width: 100%;"/>
+<img src="assets/fig/planning_in_latent_space.svg" style="margin: 0; width: 80%;"/>
 <figcaption>
-Figure 4: For planning, we encode past images (gray trapezoid) into the current hidden state (green). From there, we efficiently predict future rewards for multiple action sequences. Note how the expensive image decoder (blue trapezoid) from the previous figure is gone. We then execute the first action of the best sequence found (red box).
+Figure 3: For planning, we encode past images (gray trapezoid) into the current hidden state (green). From there, we efficiently predict future rewards for multiple action sequences. Note how the expensive image decoder (blue trapezoid) from the previous figure is gone. We then execute the first action of the best sequence found (red box).
 </div>
 
 **Experience collection**&nbsp;&nbsp; Since the agent may not initially visit all parts of the environment, we need to iteratively collect new experience and refine the dynamics model. We do so by planning with the partially trained model, as shown in Algorithm 1. Starting from a small amount of $S$ seed episodes collected under random actions, we train the model and add one additional episode to the data set every $C$ update steps. When collecting episodes for the data set, we add small Gaussian exploration noise to the action. To reduce the planning horizon and provide a clearer learning signal to the model, we repeat each action $R$ times, as is common in reinforcement learning <dt-cite key="mnih2015dqn,mnih2016a3c"></dt-cite>.
@@ -91,10 +68,12 @@ To evaluate a candidate action sequence under the learned model, we sample a sta
 
 ## Recurrent State Space Model
 
+For planning, we need to evaluate thousands of action sequences at every time step of the agent. Therefore, we use a recurrent state-space model (RSSM) that can predict forward purely in latent space, similar to recently proposed models <dt-cite key="karl2016dvbf,buesing2018dssm,doerr2018prssm"></dt-cite>. This model can be thought of as a non-linear Kalman filter or sequential VAE. Instead of an extensive comparison to prior architectures, we highlight two findings that can guide future designs of dynamics models: our experiments show that both stochastic and deterministic paths in the transition model are crucial for successful planning. In this section, we remind the reader of latent state-space models and then describe our dynamics model.
+
 <div class="figure">
 <img src="assets/fig/rssm.png" style="display: block; width: 100%;"/>
 <figcaption>
-Figure 5: Latent dynamics model designs. In this example, the model observes the first two time steps and predicts the third. Circles represent stochastic variables and squares deterministic variables. Solid lines denote the generative process and dashed lines the inference model.<br/>
+Figure 4: Latent dynamics model designs. In this example, the model observes the first two time steps and predicts the third. Circles represent stochastic variables and squares deterministic variables. Solid lines denote the generative process and dashed lines the inference model.<br/>
 </figcaption>
 <figcaption>
 (a) Transitions in a recurrent neural network are purely deterministic. This
@@ -106,9 +85,7 @@ difficult to remember information over multiple time steps.<br>
 </figcaption>
 </div>
 
-For planning, we need to evaluate thousands of action sequences at every time step of the agent. Therefore, we use a recurrent state-space model (RSSM) that can predict forward purely in latent space, similar to recently proposed models <dt-cite key="karl2016dvbf,buesing2018dssm,doerr2018prssm"></dt-cite>. This model can be thought of as a non-linear Kalman filter or sequential VAE. Instead of an extensive comparison to prior architectures, we highlight two findings that can guide future designs of dynamics models: our experiments show that both stochastic and deterministic paths in the transition model are crucial for successful planning. In this section, we remind the reader of latent state-space models and then describe our dynamics model.
-
-**Latent dynamics**&nbsp;&nbsp; We consider sequences $\{o_t,a_t,r_t\}_{t=1}^{T}$ with discrete time step $t$, high-dimensional image observations $o_t$, continuous action vectors $a_t$, and scalar rewards $r_t$. A typical latent state-space model is shown in Figure 5b and resembles the structure of a partially observable Markov decision process. It defines the generative process of the images and rewards using a hidden state sequence $\{s_t\}_{t=1}^T$,
+**Latent dynamics**&nbsp;&nbsp; We consider sequences $\{o_t,a_t,r_t\}_{t=1}^{T}$ with discrete time step $t$, high-dimensional image observations $o_t$, continuous action vectors $a_t$, and scalar rewards $r_t$. A typical latent state-space model is shown in Figure 4b and resembles the structure of a partially observable Markov decision process. It defines the generative process of the images and rewards using a hidden state sequence $\{s_t\}_{t=1}^T$,
 
 <div style="text-align:left;">
 <img src="assets/fig/eq2.png" style="display: block; margin: auto; width: 75%;"/>
@@ -124,9 +101,9 @@ where we assume a fixed initial state $s_0$ without loss of generality. The tran
 <img src="assets/fig/eq3.png" style="display: block; margin: auto; width: 75%;"/>
 </div>
 
-For the derivation, please see Equation 9 in the appendix of the paper. Estimating the outer expectations using a single reparameterized sample yields an efficient objective for inference and learning in non-linear latent variable models that can be optimized using gradient ascent <dt-cite key="kingma2013vae,rezende2014vae,krishnan2017ssmelbo"></dt-cite>.
+For the derivation, please see the appendix in the PDF. Estimating the outer expectations using a single reparameterized sample yields an efficient objective for inference and learning in non-linear latent variable models that can be optimized using gradient ascent <dt-cite key="kingma2013vae,rezende2014vae,krishnan2017ssmelbo"></dt-cite>.
 
-**Deterministic path**&nbsp;&nbsp; Despite its generality, the purely stochastic transitions make it difficult for the transition model to reliably remember information for multiple time steps. In theory, this model could learn to set the variance to zero for some state components, but the optimization procedure may not find this solution. This motivates including a deterministic sequence of activation vectors $h_t$, $t \in 1 \ldots T$ that allow the model to access not just the last state but all previous states deterministically <dt-cite key="chung2015vrnn,buesing2018dssm"></dt-cite>. We use such a model, shown in Figure 5c, that we name recurrent state-space model (RSSM),
+**Deterministic path**&nbsp;&nbsp; Despite its generality, the purely stochastic transitions make it difficult for the transition model to reliably remember information for multiple time steps. In theory, this model could learn to set the variance to zero for some state components, but the optimization procedure may not find this solution. This motivates including a deterministic sequence of activation vectors $h_t$, $t \in 1 \ldots T$ that allow the model to access not just the last state but all previous states deterministically <dt-cite key="chung2015vrnn,buesing2018dssm"></dt-cite>. We use such a model, shown in Figure 4c, that we name recurrent state-space model (RSSM),
 
 <div style="text-align:left;">
 <img src="assets/fig/eq4.png" style="display: block; margin: auto; width: 75%;"/>
@@ -138,11 +115,14 @@ where $f(h_{t-1},s_{t-1},a_{t-1})$ is implemented as a recurrent neural network 
 
 ## Latent Overshooting
 
+In the previous section, we derived the typical variational bound for learning and inference in latent sequence models (Equation 3). As show in Equation 3, this objective function contains reconstruction terms for the observations and KL-divergence regularizers for the approximate posteriors. A limitation of this objective is that the transition function $p(s_t|s_{t-1},a_{t-1})$ is only trained via the KL-divergence regularizers for one-step predictions: the gradient flows through $p(s_t|s_{t-1},a_{t-1})$ directly into $q(s_{t-1})$ but never traverses a chain of multiple $p(s_t|s_{t-1},a_{t-1})$. In this section, we generalize this variational bound to *latent overshooting*, which trains all multi-step predictions in latent space.
+
+**Limited capacity**&nbsp;&nbsp; If we could train our model to make perfect one-step predictions, it would also make perfect multi-step predictions, so this would not be a problem. However, when using a model with limited capacity and restricted distributional family, training the model only on one-step predictions until convergence does in general not coincide with the model that is best at multi-step predictions. For successful planning, we need accurate multi-step predictions. Therefore, we take inspiration from <dt-cite key="amos2018awareness">Amos et al.</dt-cite> and earlier related ideas <dt-cite key="chiappa2017recurrent,villegas2017hierarchical,lamb2016professor"></dt-cite>, and train the model on multi-step predictions of all distances. We develop this idea for latent sequence models, showing that multi-step predictions can be improved by a loss in latent space, without having to generate additional images.
+
 <div class="figure">
 <img src="assets/fig/latent_overshooting.png" style="display: block; width: 100%;"/>
-<figcaption><br/>
-Figure 6: Unrolling schemes.
-The labels <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>s</mi><mrow><mi>i</mi><mi mathvariant="normal">∣</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">s_{i|j}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.7857599999999999em;vertical-align:-0.3551999999999999em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.18019999999999992em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">i</span><span class="mord mathrm">∣</span><span class="mord mathit" style="margin-right:0.05724em;">j</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span> are short for the state at time <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.65952em;"></span><span class="strut bottom" style="height:0.65952em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">i</span></span></span></span> conditioned on observations up to time <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.65952em;"></span><span class="strut bottom" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.05724em;">j</span></span></span></span>.
+<figcaption>
+Figure 5: Unrolling schemes. The labels <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>s</mi><mrow><mi>i</mi><mi mathvariant="normal">∣</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">s_{i|j}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.7857599999999999em;vertical-align:-0.3551999999999999em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">s</span><span class="vlist"><span style="top:0.18019999999999992em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">i</span><span class="mord mathrm">∣</span><span class="mord mathit" style="margin-right:0.05724em;">j</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">​</span></span>​</span></span></span></span></span></span> are short for the state at time <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.65952em;"></span><span class="strut bottom" style="height:0.65952em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">i</span></span></span></span> conditioned on observations up to time <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.65952em;"></span><span class="strut bottom" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.05724em;">j</span></span></span></span>.
 Arrows pointing at shaded circles indicate log-likelihood loss terms. Wavy arrows indicate KL-divergence loss terms.<br/>
 </figcaption>
 <figcaption>
@@ -151,10 +131,6 @@ Arrows pointing at shaded circles indicate log-likelihood loss terms. Wavy arrow
 (c) Latent overshooting predicts all multi-step priors. These state beliefs are trained towards their corresponding posteriors in latent space to encourage accurate multi-step predictions.
 </figcaption>
 </div>
-
-In the previous section, we derived the typical variational bound for learning and inference in latent sequence models (Equation 3). As show in Equation 3, this objective function contains reconstruction terms for the observations and KL-divergence regularizers for the approximate posteriors. A limitation of this objective is that the transition function $p(s_t|s_{t-1},a_{t-1})$ is only trained via the KL-divergence regularizers for one-step predictions: the gradient flows through $p(s_t|s_{t-1},a_{t-1})$ directly into $q(s_{t-1})$ but never traverses a chain of multiple $p(s_t|s_{t-1},a_{t-1})$. In this section, we generalize this variational bound to *latent overshooting*, which trains all multi-step predictions in latent space.
-
-**Limited capacity**&nbsp;&nbsp; If we could train our model to make perfect one-step predictions, it would also make perfect multi-step predictions, so this would not be a problem. However, when using a model with limited capacity and restricted distributional family, training the model only on one-step predictions until convergence does in general not coincide with the model that is best at multi-step predictions. For successful planning, we need accurate multi-step predictions. Therefore, we take inspiration from <dt-cite key="amos2018awareness">Amos et al.</dt-cite> and earlier related ideas <dt-cite key="chiappa2017recurrent,villegas2017hierarchical,lamb2016professor"></dt-cite>, and train the model on multi-step predictions of all distances. We develop this idea for latent sequence models, showing that multi-step predictions can be improved by a loss in latent space, without having to generate additional images.
 
 **Multi-step prediction**&nbsp;&nbsp; We start by generalizing the standard variational bound (Equation 3) from training one-step predictions to training multi-step predictions of a fixed distance $d$. For ease of notation, we omit actions in the conditioning set here; every distribution over $s_t$ is conditioned upon $a_{\lt t}$. We first define multi-step predictions, which are computed by repeatedly applying the transition model and integrating out the intermediate states,
 
@@ -168,7 +144,7 @@ The case $d=1$ recovers the one-step transitions used in the original model. Giv
 <img src="assets/fig/eq6.png" style="display: block; margin: auto; width: 75%;"/>
 </div>
 
-For the derivation, please see Equation 10 in the appendix. Maximizing this objective trains the multi-step predictive distribution. This reflects the fact that during planning, the model makes predictions without having access to all the preceding observations.
+For the derivation, please see the appendix in the PDF. Maximizing this objective trains the multi-step predictive distribution. This reflects the fact that during planning, the model makes predictions without having access to all the preceding observations.
 
 We conjecture that Equation 6 is also a lower bound on $\ln p(o_{1:T})$ based on the data processing inequality. Since the latent state sequence is Markovian, for $d\geq 1$ we have $I(s_t;s_{t-d})\leq I(s_t;s_{t-1})$ and thus $E[\ln p_d(o_{1:T})]\leq E[\ln p(o_{1:T})]$. Hence, every bound on the multi-step predictive distribution is also a bound on the one-step predictive distribution in expectation over the data set. For details, please see the appendix in the PDF. In the next paragraph, we alleviate the limitation that a particular $p_d$ only trains predictions of one distance and arrive at our final objective.
 
@@ -189,11 +165,44 @@ We evaluate PlaNet on six continuous control tasks from pixels. We explore multi
 <iframe width="560" height="315" src="https://www.youtube.com/embed/tZk1eof_VNA" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>
 <figcaption>
-Figure 7: Video of the PlaNet agent learning to solve a variety of continuous control tasks from images in 2000 attempts. Previous agents that do not learn a model of the environment often require 50 times as many attempts to reach comparable performance.
+Figure 6: Video of the PlaNet agent learning to solve a variety of continuous control tasks from images in 2000 attempts. Previous agents that do not learn a model of the environment often require 50 times as many attempts to reach comparable performance.
 </figcaption>
 </div>
 
-For our evaluation, we consider six image-based continuous control tasks of the DeepMind control suite <dt-cite key="tassa2018dmcontrol">Tassa et al.</dt-cite>. These environments provide qualitatively different challenges. The cartpole swingup task requires a long planning horizon and to memorize the cart when it is out of view, the finger spinning task includes contact dynamics between the finger and the object, the cheetah tasks exhibit larger state and action spaces, the cup task only has a sparse reward for when the ball is caught, and the walker is challenging because the robot first has to stand up and then walk, resulting in collisions with the ground that are difficult to predict. In all tasks, the only observations are third-person camera images of size 64&times;64&times;3 pixels.
+For our evaluation, we consider six image-based continuous control tasks of the DeepMind control suite <dt-cite key="tassa2018dmcontrol">Tassa et al.</dt-cite>, shown in Figure 7. These environments provide qualitatively different challenges. The cartpole swingup task requires a long planning horizon and to memorize the cart when it is out of view, the finger spinning task includes contact dynamics between the finger and the object, the cheetah tasks exhibit larger state and action spaces, the cup task only has a sparse reward for when the ball is caught, and the walker is challenging because the robot first has to stand up and then walk, resulting in collisions with the ground that are difficult to predict. In all tasks, the only observations are third-person camera images of size 64&times;64&times;3 pixels.
+
+<div class="figure">
+<video class="b-lazy" data-src="assets/mp4/combined.mp4" type="video/mp4" autoplay muted playsinline loop style="display: block; width: 100%;" ></video>
+<img src="assets/fig/control_suite_caption.jpeg" style="display: block; width: 100%;"/>
+<figcaption>
+Figure 7: Image-based control domains used in our experiments. The animation
+shows the image inputs as the agent is solving each task. The tasks test a
+variety of properties of our agent.
+</figcaption>
+<figcaption>
+(a) For cartpole the camera is fixed, so the cart can move out of sight. The
+agent thus must absorb and remember information over multiple frames.<br>
+(b) The finger spin task requires predicting two separate objects, as well as
+the interactions between them.<br>
+(c) The cheetah running task includes contacts with the ground that are
+difficult to predict precisely, calling for a model that can predict multiple
+possible futures.<br>
+(d) The cup task only provides a sparse reward signal once a ball is caught.
+This demands accurate predictions far into the future to plan a precise
+sequence of actions.<br>
+(e) The simulated walker robot starts off by lying on the ground, so the agent must first learn to stand up and then walk.
+</figcaption>
+</div>
+
+**Comparison to model-free methods**&nbsp;&nbsp; Figure 8 compares the performance of PlaNet to the model-free algorithms reported by <dt-cite key="tassa2018dmcontrol">Tassa et al.</dt-cite>. Within 500 episodes, PlaNet outperforms the policy-gradient method A3C trained from proprioceptive states for 100,000 episodes, on all tasks. After 2,000 episodes, it achieves similar performance to D4PG, trained from images for 100,000 episodes, except for the finger task. On the cheetah running task, PlaNet surpasses the final performance of D4PG with a relative improvement of 19%. We refer to Table 1 for numerical results, which also includes the performance of CEM planning with the true dynamics of the simulator.
+
+<div class="figure">
+<img src="assets/fig/result_table.png" style="display: block; width: 100%;"/>
+<figcaption>Table 1: Comparison of PlaNet to the model-free algorithms A3C and D4PG reported by <dt-cite key="tassa2018dmcontrol">Tassa et al.</dt-cite>. The training curves for these are shown as orange lines in Figure 4 and as solid green lines in Figure 6 in their paper. From these, we estimate the number of episodes that D4PG takes to achieve the final performance of PlaNet to estimate the data efficiency gain. We further include CEM planning (H=12,I=10,J=1000,K=100) with the true simulator instead of learned dynamics as an estimated upper bound on performance. Numbers indicate mean final performance over 4 seeds.<br/>
+</figcaption>
+</div>
+
+**Model designs**&nbsp;&nbsp; Figure 8 additionally compares design choices of the dynamics model. We train PlaNet using our recurrent state-space model (RSSM), as well as versions with purely deterministic GRU <dt-cite key="cho2014gru"></dt-cite>, and purely stochastic state-space model (SSM). We observe the importance of both stochastic and deterministic elements in the transition function on all tasks. The stochastic component might help because the tasks are stochastic from the agent's perspective due to partial observability of the initial states. The noise might also add a safety margin to the planning objective that results in more robust action sequences. The deterministic part allows the model to remember information over many time steps and is even more important -- the agent does not learn without it.
 
 <div class="figure">
 <img src="assets/fig/result_model.png" style="display: block; width: 100%;"/>
@@ -202,15 +211,7 @@ Figure 8: Comparison of PlaNet to model-free algorithms and other model designs.
 </figcaption>
 </div>
 
-**Comparison to model-free methods**&nbsp;&nbsp; Figure 8 compares the performance of PlaNet to the model-free algorithms reported by <dt-cite key="tassa2018dmcontrol">Tassa et al.</dt-cite>. Within 500 episodes, PlaNet outperforms the policy-gradient method A3C trained from proprioceptive states for 100,000 episodes, on all tasks. After 2,000 episodes, it achieves similar performance to D4PG, trained from images for 100,000 episodes, except for the finger task. On the cheetah running task, PlaNet surpasses the final performance of D4PG with a relative improvement of 19%. We refer to Table 1 for numerical results, which also includes the performance of CEM planning with the true dynamics of the simulator.
-
-<div class="figure">
-<img src="assets/fig/result_table.png" style="display: block; width: 100%;"/>
-<figcaption>Table 1: Comparison of PlaNet to the model-free algorithms A3C and D4PG reported by <dt-cite key="tassa2018dmcontrol">Tassa et al.</dt-cite>. The training curves for these are shown as orange lines in Figure~4 and as solid green lines in Figure~6 in their paper. From these, we estimate the number of episodes that D4PG takes to achieve the final performance of PlaNet to estimate the data efficiency gain. We further include CEM planning (H=12,I=10,J=1000,K=100) with the true simulator instead of learned dynamics as an estimated upper bound on performance. Numbers indicate mean final performance over 4 seeds.<br/>
-</figcaption>
-</div>
-
-**Model designs**&nbsp;&nbsp; Figure 8 additionally compares design choices of the dynamics model. We train PlaNet using our recurrent state-space model (RSSM), as well as versions with purely deterministic GRU <dt-cite key="cho2014gru"></dt-cite>, and purely stochastic state-space model (SSM). We observe the importance of both stochastic and deterministic elements in the transition function on all tasks. The stochastic component might help because the tasks are stochastic from the agent's perspective due to partial observability of the initial states. The noise might also add a safety margin to the planning objective that results in more robust action sequences. The deterministic part allows the model to remember information over many time steps and is even more important -- the agent does not learn without it.
+**Agent designs**&nbsp;&nbsp; Figure 9 compares PlaNet with latent overshooting to versions with standard variational objective, and with a fixed random data set rather than collecting experience online. We observe that online data collection helps all tasks and is necessary for the finger and walker tasks. Latent overshooting is necessary for successful planning on the walker and cup tasks; the sparse reward in the cup task demands accurate predictions for many time steps. It also slows down initial learning for the finger task, but increases final performance on the cartpole balance and cheetah tasks.
 
 <div class="figure">
 <img src="assets/fig/result_agent.png" style="display: block; width: 100%;"/>
@@ -218,8 +219,6 @@ Figure 8: Comparison of PlaNet to model-free algorithms and other model designs.
 Figure 9: Comparison of agent designs. Plots show test performance for the number of collected episodes. We compare PlaNet using latent overshooting (Equation 8), a version with standard variational objective (Equation 3), and a version that trains from a random data set of 1000 episodes rather than collecting experience during training. The lines show medians and the areas show percentiles 5 to 95 over 4 seeds and 10 rollouts.<br/>
 </figcaption>
 </div>
-
-**Agent designs**&nbsp;&nbsp; Figure 9 compares PlaNet with latent overshooting to versions with standard variational objective, and with a fixed random data set rather than collecting experience online. We observe that online data collection helps all tasks and is necessary for the finger and walker tasks. Latent overshooting is necessary for successful planning on the walker and cup tasks; the sparse reward in the cup task demands accurate predictions for many time steps. It also slows down initial learning for the finger task, but increases final performance on the cartpole balance and cheetah tasks.
 
 **One agent all tasks**&nbsp;&nbsp; Additionally, we train a single PlaNet agent to solve all six tasks. The agent is placed into different environments without knowing the task, so it needs to infer the task from its image observations. Without changes to the hyper parameters, the multi-task agent achieves the same mean performance as individual agents. While learning slower on the cartpole tasks, it learns substantially faster and reaches a higher final performance on the challenging walker task that requires exploration.
 
